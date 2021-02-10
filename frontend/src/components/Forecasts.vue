@@ -10,11 +10,13 @@
 
 <template>
     <b-container fluid>
-        <br/>
         <b-row align-v="center">
             <b-col cols="1"/>
             
-            <b-col cols="1" :style="{textAlign: 'left'}">
+            <b-col
+                cols="1"
+                :style="{textAlign: 'left'}"
+            >
                 <b-button-group>
                     <!-- table varaible -->
                     <Controls
@@ -64,103 +66,183 @@
         
         <b-row>    
         </b-row>
-        
-        <b-row md="12" class="mt-4">
+
+        <!-- forecast overview table -->
+        <b-row
+            md="12"
+            class="mt-4 mb-4"
+        >
             <b-col/>
             
-            <b-col cols="10">
-                <h5 v-if="cityData && cityData.length">{{tableTitle}}</h5>
-                <!-- forecasts table renders only if cityData is populated -->
-                <ForecastsTable v-if="cityData && cityData.length"
-                    :forecastData="cityData"
-                    :tableItems="tableCells"
-                    :tableFields="tableHeader"
-                    :selectedRow="selectedCity"
-                    :sortBy="tableSortBy"
-                    :sortDesc="tableSorted"
-                    :tableStyle="tableStyle"
-                    :sortCompare="sortCompare"
-                    @selectedRowUpdate="(index, value) => { $emit('selectedRowUpdate', index, value); }"
-                    @sortingChanged="value => { $emit('sortingChanged', value) }"
-                    @showPlot="$emit('showPlot');"
-                    @showDetailedForecast="$emit('showDetailedForecast')"
-                    ref="table"
-                />
+            <!-- forecasts table renders only if cityData is populated -->
+            <transition name="fade-overview-table">
+                <b-col
+                    v-if="cityData && cityData.length"
+                    cols="10"
+                    key="overviewTable"
+                >
+                    <b-row>
+                        <!-- filter input -->
+                        <b-col cols="2">
+                            <div>
+                                <b-input-group
+                                    size="sm"
+                                    class="mb-1"
+                                >
+                                    <b-form-input
+                                        :value="tableFilter"
+                                        :placeholder="$t('filter')"
+                                        :debounce="filterDebounce"
+                                        trim
+                                        @update="tableFilter = $event"
+                                        :style="{ 'border-right': !tableFilter ? '' : 'none' }"
+                                    />
+                                    <b-input-group-append v-if="tableFilter">
+                                        <b-input-group-text style="background-color: white; border-left: none; cursor: pointer;">
+                                            <b-icon-x @click="tableFilter = null" />
+                                        </b-input-group-text>
+                                    </b-input-group-append>
+                                </b-input-group>
+                            </div>
+                        </b-col>
+                        <!-- table title -->
+                        <b-col
+                            cols="8"
+                            style="vertical-align: middle"
+                        >
+                            <h5>{{tableTitle}}</h5>
+                        </b-col>
+                    </b-row>
+                    <!-- forecasts table -->
+                    <transition name="resize">
+                        <b-row :style="tableStyle">
+                            <b-col cols="12" :style="tableStyle">
+                                <ForecastsTableCustom
+                                    :forecastData="cityData"
+                                    :tableItems="tableCells"
+                                    :tableFields="tableHeader"
+                                    :selectedRow="selectedCity"
+                                    :tableStyle="tableStyle"
+                                    :tableFilter="tableFilter"
+                                    @selectedRowUpdate="(index, value) => { $emit('selectedRowUpdate', index, value); }"
+                                    @sortingChanged="value => { $emit('sortingChanged', value) }"
+                                    @showPlot="$emit('showPlot');"
+                                    @showDetailedForecast="$emit('showDetailedForecast')"
+                                    @filterChanged="index => $emit('filterChanged', index)"
+                                    ref="table"
+                                />
+                            </b-col>
+                        </b-row>
+                    </transition>
+                </b-col>
                 <!-- otherwise display no forecasts message -->
-                <h3 v-else>{{ $t('no forecasts') }}</h3>
-            </b-col>
+                <b-col
+                    v-else
+                    key="noForecast"
+                    cols="10"
+                >
+                    <h3>{{ $t('no forecasts') }}</h3>
+                </b-col>
+            </transition>
             
             <b-col/>
         </b-row>
         
-        <b-container v-if="selectedCity !== -1 && showDetailedForecast" fluid>
-          <b-row>
-            <b-col/>
+        <!-- detailed forecast -->
+        <transition name="fade"
+            v-on:before-leave="beforeLeave"
+            v-on:after-leave="afterLeave"
+        >
+            <b-container
+                v-if="selectedCity !== -1 && showDetailedForecast"
+                fluid
+                style="min-height: 47vh;"
+            >
+                <b-row>
+                    <b-col cols="2"/>
 
-            <b-col cols="10">
-                  <b-button-close @click="showPlot ? showDetailedForecast = false : selectedCity = -1; showDetailedForecast = false;" />
-            </b-col>
-            
-            <b-col/>
-          </b-row>
-          
-          <b-row>
-              <b-col/>
-              
-              <b-col cols="10">
-                  <DetailedForecast
-                      :lat="cityData[selectedCity].coords.lat"
-                      :lon="cityData[selectedCity].coords.lon"
-                      :perPage=6
-                  />
-              </b-col>
-              
-              <b-col/>
-          </b-row>
-        </b-container>
+                    <b-col cols="8">
+                        <h4>{{cityData[selectedCity].name[this.$i18n.locale]}}</h4>
+                    </b-col>
+                    <b-col cols="1" class="pr-0">
+                          <b-button-close @click="showPlot ? showDetailedForecast = false : selectedCity = -1; showDetailedForecast = false;" />
+                    </b-col>
+                    
+                    <b-col/>
+                </b-row>
+                
+                <b-row>
+                    <b-col/>
+                    
+                    <b-col cols="10">
+                        <DetailedForecast
+                            :lat="cityData[selectedCity].coords.lat"
+                            :lon="cityData[selectedCity].coords.lon"
+                            :perPage=6
+                            :paginated="preferences.frontend.detailedForecastStyle === 'paginated' ? true : false"
+                        />
+                    </b-col>
+                    
+                    <b-col/>
+                </b-row>
+            </b-container>
+        </transition>
 
-        <!-- plot renders only if a city is selected -->
-        <b-container v-if="selectedCity !== -1 && showPlot" fluid>
-            <b-row>
-                <b-col/>
+        <!-- forecast variable plot -->
+        <transition
+            name="fade"
+            v-on:before-leave="beforeLeave"
+            v-on:after-leave="afterLeave"
+        >
+            <b-container
+                v-if="selectedCity !== -1 && showPlot"
+                fluid
+            >
+                <b-row class="pb-2">
+                    <b-col/>
+                    
+                    <b-col
+                        cols="1"
+                        :style="{textAlign: 'left'}"
+                    >
+                        <!-- plot timeline duration control -->
+                        <b-form-spinbutton
+                            :value="endHours"
+                            min="1"
+                            max="48"
+                            size="sm"
+                            inline
+                            @change="endHours = $event"
+                        />
+                        <span>{{ $t('hours') }}</span>
+                    </b-col>
+                    
+                    <b-col cols="8">
+                        <h4>
+                            {{ $t('plot for') }} {{ cityData[selectedCity].name[$i18n.locale] }}
+                        </h4>
+                    </b-col>
+                    
+                    <b-col class="pr-0">
+                        <!-- container close button -->
+                        <b-button-close @click="showDetailedForecast ? showPlot = false : selectedCity = -1; showPlot = false;" />
+                    </b-col>
+                    
+                    <b-col/>
+                </b-row>
                 
-                <b-col cols="1" :style="{textAlign: 'left'}">
-                    <!-- plot timeline duration control -->
-                    <b-form-spinbutton
-                        :value="endHours"
-                        min="1"
-                        max="48"
-                        size="sm"
-                        inline
-                        @change="endHours = $event"
-                    />
-                    <span>{{ $t('hours') }}</span>
-                </b-col>
-                
-                <b-col cols="8">
-                    <h4>
-                        {{ $t('plot for') }} {{ cityData[selectedCity].name[$i18n.locale] }}
-                    </h4>
-                </b-col>
-                
-                <b-col>
-                    <!-- container close button -->
-                    <b-button-close @click="showDetailedForecast ? showPlot = false : selectedCity = -1; showPlot = false;" />
-                </b-col>
-                
-                <b-col/>
-            </b-row>
-            
-            <b-row>
-              <b-col/>
-              
-              <b-col cols="10">
-                  <LineChart :chart-data="preparePlotData(endHours, selectedVar)" />
-              </b-col>
-              
-              <b-col/>
-            </b-row>
-        </b-container>
+                <b-row>
+                    <b-col/>
+                    
+                    <b-col cols="10">
+                        <!-- actual plot -->
+                        <LineChartAsync :chartData="preparePlotData(endHours, selectedVar)" />
+                    </b-col>
+                    
+                    <b-col/>
+                </b-row>
+            </b-container>
+        </transition>
 
     </b-container>
 </template>
@@ -169,8 +251,10 @@
 import Controls from './Controls.vue'
 import LineChart from './LineChart.vue'
 import { mapGetters } from 'vuex'
-import ForecastsTable from './ForecastsTable.vue'
 import DetailedForecast from './DetailedForecast.vue'
+import LineChartAsync from './LineChartAsync.vue'
+import ForecastsTableCustom from './ForecastsTableCustom.vue'
+import { BIconX } from 'bootstrap-vue'
 
 const hoursPassed = (end, start) => {
     return Math.floor((end - start)/3600000);
@@ -184,22 +268,26 @@ export default {
           variables: ['temperature', 'humidity', 'pressure'],
           selectedVar: 'temperature',
           selectedCity: -1, // index of city in cityData
+          selectedCityIndexSorted: -1,
           endHours: 48, // timeline duration in hours for plot
-          tableSortBy: null, // field name to sort forecasts table by
-          tableSorted: null, // forecasts table is sorted (null: no, true: desc, false: asc)
-          tableStyle: { height: '70vh' }, // table css styling
+          tableSorted: 0, // forecasts table is sorted
+          tableStyle: { minHeight: '70vh', maxHeight: '70vh' }, // table css styling
           showPlot: false,
           showDetailedForecast: false,
           overviewColumns: 8, // number of forecast columns in overview table
-          overviewPeriod: 4 // hours between forecast columns
+          overviewPeriod: 4, // hours between forecast columns
+          tableFilter: null, // string to filter table by
+          filterDebounce: 250 // filter input debounce (in ms)
       }
   },
 
   components: {
       Controls,
       LineChart,
-      ForecastsTable,
-      DetailedForecast
+      DetailedForecast,
+      LineChartAsync,
+      ForecastsTableCustom,
+      BIconX
   },
 
   methods: {
@@ -210,27 +298,22 @@ export default {
           })
       },
 
-      preparePlotData: function (endHours, variable) {
+      preparePlotData: async function (endHours, variable) {
       /* prepares dataset for plot */
-          let chartdata = this.chartData[this.selectedCity].variables[this.selectedVar] // get selected variable measurements
+          let chartdata = (await this.chartData[this.selectedCity]).variables[this.selectedVar];
           delete chartdata.title // remove plot title
           chartdata = {...chartdata, labels: chartdata.labels.slice(0, endHours)} // x-axis points for endHours hours
 
           return chartdata
       },
 
-      findSelectedCityIndexSorted() {
-      /* return selected city index in sorted names table */
-          return this.sortedCityNames.findIndex(name => name === this.cityData[this.selectedCity].name[this.$i18n.locale]);
+      beforeLeave: function (el) {
+          document.getElementById("app").style.overflow = "hidden"; // temporarily disable while transitioning
       },
 
-      sortCompare(aRow, bRow, key = 'city', sortDesc) {
-      /* sort function to be used in table for city column */
-          const a = aRow[key]
-          const b = bRow[key]
-          
-          return a.name < b.name ? -1 : a.name > b.name ? 1 : 0
-      }
+      afterLeave: function (el) {
+          document.getElementById("app").style.overflow = "auto"; // enable after transition
+      },
   },
 
   computed: {
@@ -243,7 +326,9 @@ export default {
           this.cityData.forEach(city => {
               nowIndex = city.forecast.hourlyDt.findIndex(dt => hoursPassed(now, dt) === 0) // find closest datetime to now + first column hours
               let curr_data = {
-                  'city' : { name: city.name[this.$i18n.locale], coords: city.coords } // city column
+                  'city' : { name: city.name[this.$i18n.locale], coords: city.coords }, // city column
+                  'country': city.country[this.$i18n.locale],
+                  'continent': this.$t(city.continent.toLowerCase())
               }
               for (let counter = 0; counter < this.overviewColumns && nowIndex !== -1 && nowIndex + counter*this.overviewPeriod < city.forecast[this.selectedVar].length; counter++) // if nowIndex === =1, there is no up to date forecast data to pass to the table
               {
@@ -261,8 +346,18 @@ export default {
           let options = { weekday: 'short', hour: '2-digit'};
           let fields = [
               {
-                key: 'city', // key name according to locale
+                key: 'city',
                 label: this.$t('city'),
+                sortable: true
+              },
+              {
+                key: 'country',
+                label: this.$t('country'),
+                sortable: true
+              },
+              {
+                key: 'continent',
+                label: this.$t('continent'),
                 sortable: true
               }
           ];
@@ -273,10 +368,7 @@ export default {
               currentDate = new Date(now + counter*this.overviewPeriod*60*60*1000);
               let new_label = {
                   key: String(counter),
-                  sortable: false,
-                  /*label: this.$i18n.locale === 'en' // dates according to locale
-                      ? currentDate.toLocaleDateString("en-US",options)
-                      : currentDate.toLocaleDateString("el-GR",options)*/
+                  sortable: true,
                   label: currentDate.toLocaleDateString(this.$i18n.locale, options)
               }
               fields.push(new_label);
@@ -293,88 +385,104 @@ export default {
           return `${this.$t(this.selectedVar)} ${this.$t('in')} ${unit_map[this.selectedVar]}`;
       },
 
-      sortedCityNames() {
-      /* returns sorted city names table according to locale & table sorting (asc or desc) */
-          return this.cityData.map(row => row.name[this.$i18n.locale]).sort(
-              (a, b) => {
-                  if(this.tableSorted)
-                      return b >= a;
-                  else
-                      return b < a;
-              }
-          );
-      },
-
       ...mapGetters({
           cityData: 'allCityData/getAllCityData',
           chartData: 'chartData/getChartData',
-          locale: 'locale/getLocale'
+          preferences: 'preferences/getPreferences'
       })
   },
 
   watch: {
+      overviewColumns() {
+          window.localStorage.setItem('overviewColumns', JSON.stringify(this.overviewColumns))
+      },
+
+      overviewPeriod() {
+          window.localStorage.setItem('overviewPeriod', JSON.stringify(this.overviewPeriod))
+      },
+
       selectedCity(newValue, oldValue) {
-          this.tableStyle.height = newValue === -1 ? '70vh' : '25vh';
-          
-          if (newValue === -1) { // plot is closed
+          this.tableStyle.maxHeight = this.tableStyle.minHeight = newValue === -1 ? '70vh' : '25vh';
+          if (newValue === -1) { // plot was closed, no city selected
+              this.$refs.table.scrollToRow(0);
+              this.selectedCityIndexSorted = -1;
+          }
+      },
+
+      selectedCityIndexSorted(newValue, oldValue) {
+          if(newValue === -1) { // plot was closed, no city selected
               this.$refs.table.scrollToRow(0);
           }
-          else if (oldValue === -1) { // plot is opened
-              if (this.tableSorted === null) {
-                  this.$refs.table.scrollToRow(newValue); // scroll to index directly
-              }
-              else {
-                  this.$refs.table.scrollToRow(this.findSelectedCityIndexSorted());
-              }
+          else if(oldValue === -1) { // plot was closed, city selected
+              this.$refs.table.scrollToRow(this.selectedCityIndexSorted);
           }
       },
 
       tableSorted(newValue, oldValue) {
           if(this.selectedCity !== -1) { // scroll sorted table to follow selected city
-              this.$refs.table.scrollToRow(this.findSelectedCityIndexSorted());
-          }
-          if(newValue === null) { // scroll unsorted table to follow selected city
-              this.$refs.table.scrollToRow(this.selectedCity);
+              this.$refs.table.scrollToRow(this.selectedCityIndexSorted); // when table unsorted, selectedCity == selectedCityIndexSorted
           }
       },
 
-      locale() {
-          if(this.tableSortBy) {
-              this.tableSortBy = this.$t('city'); // translate sort key
-              if(this.selectedCity !== -1) {
-                  this.$refs.table.scrollToRow(this.findSelectedCityIndexSorted()); // scroll table to correct selected city row when table is sorted
-              }
+      tableFilter(newValue, oldValue) {
+          this.tableStyle.maxHeight = 'auto';
+          if(this.selectedCity === -1) { // when no city selected
+              this.$refs.table.scrollToRow(0); // reset table scroll between filter inputs
           }
-      },
-
-      overviewColumns(newValue, oldValue) {
-          window.localStorage.setItem('overviewColumns', JSON.stringify(newValue))
-      },
-
-      overviewPeriod(newValue, oldValue) {
-          window.localStorage.setItem('overviewPeriod', JSON.stringify(newValue))
+          else {
+              setTimeout(() => { // wait for selected city index to be updated
+                  this.$refs.table.scrollToRow(this.selectedCityIndexSorted);
+              }, this.filterDebounce + 50);
+          }
       }
   },
   
   async created() {
-      if(!this.cityData.length){
-        console.log('Load our data first');
-        await this.$store.dispatch('allCityData/setAllCityDataAsync');
-      }
-
       this.overviewColumns = JSON.parse(window.localStorage.getItem('overviewColumns')) || this.overviewColumns;
       this.overviewPeriod = JSON.parse(window.localStorage.getItem('overviewPeriod')) || this.overviewPeriod;
   },
 
   mounted() {
-       //event listeners
-      this.$on('selectedRowUpdate', (index, coords) => { this.selectedCity = this.findCityIndex(coords); });
-      this.$on('sortingChanged', ({ sortBy, sortDesc }) => {
-          this.tableSortBy = sortBy;
-          this.tableSorted = sortDesc;
+      this.$on('selectedRowUpdate', ({index, coords}) => {
+          this.selectedCity = this.findCityIndex(coords);
+          this.selectedCityIndexSorted = index;
       });
+
+      this.$on('sortingChanged', value => {
+          this.tableSorted = value;
+      });
+
       this.$on('showPlot', () => { this.showPlot = true; });
+      
       this.$on('showDetailedForecast', () => { this.showDetailedForecast = true; });
+  },
+
+  destroyed() {
+      this.$off();
   }
 }
 </script>
+
+<style type="text/css" scoped>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .25s linear;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+.fade-overview-table-enter-active, .fade-overview-table-leave-active {
+  transition: opacity .5s;
+  display: none;
+}
+.fade-overview-table-enter, .fade-overview-table-leave-to {
+  opacity: 0;
+}
+
+.resize-enter-active, .resize-leave-active {
+  transition: max-height 1s ease-in;
+}
+.resize-enter, .resize-leave-to {
+  transition: max-height 1s ease-out;
+}
+</style>

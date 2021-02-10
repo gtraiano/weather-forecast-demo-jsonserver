@@ -1,6 +1,77 @@
 import axios from 'axios';
 
-const baseUrl = `${process.env.BACKEND_DOMAIN}:${process.env.BACKEND_PORT}${process.env.BACKEND_PATH}`;
+let backendProtocol = process.env.EXPRESS_SERVER_PROTOCOLS.split(',').map(p => p.trim().toLowerCase()).includes('https') ? 'https' : 'http';
+let backendDomain = process.env.BACKEND_DOMAIN;
+let backendPort = backendProtocol === 'https' ? process.env.EXPRESS_SERVER_HTTPS_PORT : process.env.EXPRESS_SERVER_HTTP_PORT;
+let backendEndpoint = process.env.BACKEND_API_ENDPOINT;
+let baseUrl = `${backendProtocol}://${backendDomain}:${backendPort}${backendEndpoint}`;
+
+const pingTimeout = 3000;
+// ping active protocol
+const pingActiveProtocol = async () => {
+	try {
+		return await axios.get(
+			`${baseUrl}ping`,
+			{
+				timeout: pingTimeout,
+				headers: { 'Access-Control-Allow-Origin': true }
+			}
+		)
+	}
+	catch(error) {
+		console.log(error.message);
+	}
+}
+
+// ping specific protocol
+const pingProtocol = async protocol => {
+	try {
+		if(protocol.toLowerCase() === 'http') {
+			return await axios.get(
+				`http://${process.env.BACKEND_DOMAIN}:${process.env.EXPRESS_SERVER_HTTP_PORT}${process.env.BACKEND_API_ENDPOINT}ping`,
+				{
+					timeout: pingTimeout,
+					headers: { 'Access-Control-Allow-Origin': true } 
+				}
+			);
+		}
+		else if(protocol.toLowerCase() === 'https') {
+			return await axios.get(
+				`https://${process.env.BACKEND_DOMAIN}:${process.env.EXPRESS_SERVER_HTTPS_PORT}${process.env.BACKEND_API_ENDPOINT}ping`,
+				{
+					timeout: pingTimeout,
+					headers: { 'Access-Control-Allow-Origin': true } 
+				}
+			);
+		}
+	}
+	catch(error) {
+		console.error(error.message);
+		return null;
+	}
+}
+// get and set backend parameters
+const setActiveProtocol = value => {
+	backendProtocol = value;
+	backendPort = backendProtocol === 'https' ? process.env.EXPRESS_SERVER_HTTPS_PORT : process.env.EXPRESS_SERVER_HTTP_PORT;
+	baseUrl = `${backendProtocol}://${process.env.BACKEND_DOMAIN}:${backendPort}${process.env.BACKEND_API_ENDPOINT}`;
+}
+
+const getActiveProtocol = () => backendProtocol
+
+const getActivePort = () => backendPort
+
+const setBackendUrl = url => {
+/* parse url and set backend parameters */
+	const params = [...url.matchAll(/(.*):\/{2}(.+?):??(?=\d+)(\d*?)(\/.*)/gm)];
+	if(!params.length) return;
+	
+	backendProtocol = params[1];
+	backendDomain = params[2];
+	backendPort = params[3] || 80;
+	backendEndpoint = params[4];
+	baseUrl = url;
+}
 
 // Nominatim calls
 const nominatimSearchName = async (name, locale) => {
@@ -141,5 +212,11 @@ export {
 	deleteCityLatLon,
 	postCityLatLon,
 	postCity,
-	getDetailedForecastLatLon
+	getDetailedForecastLatLon,
+	pingActiveProtocol,
+	pingProtocol,
+	setActiveProtocol,
+	getActiveProtocol,
+	getActivePort,
+	setBackendUrl
 };

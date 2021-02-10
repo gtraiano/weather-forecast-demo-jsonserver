@@ -1,9 +1,15 @@
 <template>
 <div class="popup">
     <b-card no-body>
-        <b-container v-if="!chartData" class="plot"><!-- no data to show -->
+        <!-- no data to show -->
+        <b-container
+            v-if="status === 'error'"
+            class="plot"
+        >
             <div class="row justify-content-center">
-                <div class="col-12 text-center"><h3>{{$t('no data')}}</h3></div>
+                <div class="col-12 text-center">
+                    <h3>{{$t('no data')}}</h3>
+                </div>
             </div>
             <div class="row justify-content-center align-items-end">
                 <div class="col-12 text-center align-self-end">
@@ -11,11 +17,36 @@
                 </div>
             </div>
         </b-container>
-        <b-tabs v-else pills>
-        	<b-tab no-body v-for="(variable, index) in forecastVariables" :title="$t(variable)" :key="index">
+        
+        <!-- loading -->
+        <b-container
+            v-else-if="status === 'loading'"
+            class="plot"
+        >
+            <div class="row justify-content-center">
+                <div class="col-12 text-center">
+                    <h3>{{$t('loading')}}</h3>
+                </div>
+            </div>
+        </b-container>
+        
+        <!-- render plot only if popup is active -->
+        <b-tabs
+            v-else-if="status === 'ready' && active"
+            pills
+            justified
+        >
+        	<b-tab
+                no-body
+                v-for="(variable, index) in forecastVariables"
+                :key="index"
+                :title="$t(variable)"
+            >
         		<b-container style="overflow: auto;">
         			<b-row class="p-0">
-                        <b-col md="12" class="p-0 m-0 b-0 plot"
+                        <b-col
+                            md="12"
+                            class="p-0 m-0 b-0 plot"
                             align="center"
                             v-bind:id="'container' + index"
                             @wheel.prevent="!openMenu && $emit('wheel', $event, index)"
@@ -27,21 +58,38 @@
                             <!-- buttons functional only when mouse is hovering and/or no plot dragging occurs -->
                             <b-button-group
                                 v-if="!dragging || showToolbar"
+                                id="toolbar"
                                 size="sm" class="button-group smooth slow"
                                 v-bind:style="{opacity: showToolbar}"
                                 @mouseenter="showToolbar = 1 || openMenu;"
                                 @mouseleave="showToolbar = 0 || openMenu;"
                             >
-                                <b-button variant="light" @click="zoom(0.2, index);">
+                                <!-- zoom in-->
+                                <b-button
+                                    variant="light"
+                                    @click="zoom(0.2, index);"
+                                >
                                     <b-icon-zoom-in/>
                                 </b-button>
-                                <b-button variant="light" @click="zoom(-0.2, index);">
+                                <!-- zoom out-->
+                                <b-button
+                                    variant="light"
+                                    @click="zoom(-0.2, index);"
+                                >
                                     <b-icon-zoom-out/>
                                 </b-button>
-                                <b-button variant="light" @click="reset([index]);">
+                                <!-- reset zoom -->
+                                <b-button
+                                    variant="light"
+                                    @click="reset([index]);"
+                                >
                                     <b-icon-arrow-clockwise/>
                                 </b-button>
-                                <b-dropdown size="sm" variant="light"
+                                <!-- save plot image -->
+                                <b-dropdown
+                                    id="toolbar-save-image"
+                                    size="sm"
+                                    variant="light"
                                     @shown="openMenu = 1"
                                     @hidden="openMenu = 0"
                                 >
@@ -51,7 +99,8 @@
                                     <b-dropdown-header>
                                         {{$t('size')}}
                                     </b-dropdown-header>
-                                    <b-dropdown-item v-for="(size, index) in [$t('small'), $t('normal'), $t('large')]"
+                                    <b-dropdown-item
+                                        v-for="(size, index) in [$t('small'), $t('normal'), $t('large')]"
                                         :key="index"
                                         class="container-fluid p-0 m-0"
                                         size="sm"
@@ -62,11 +111,11 @@
                                     </b-dropdown-item>
                                 </b-dropdown>
                             </b-button-group>
-                            <!-- render plot only if popup is active -->
+                            
+                            <!-- plot -->
                             <LineChart
-                                v-if="active"
                                 :styles="{height: '100%', width: '100%'}"
-                                :chart-data="chartData.variables[variable]"
+                                :chart-data="data.variables[variable]"
                                 :scale="zoomScale[index]"
                                 class="zoomable smooth fix-blur"
                                 v-bind:style="{
@@ -90,9 +139,11 @@ import LineChart from './LineChart.vue';
 import { BIconDownload, BIconZoomIn, BIconZoomOut, BIconArrowClockwise, BIconXCircle } from 'bootstrap-vue';
 
 export default {
+    name: 'PopupChart',
+
     props: {
         chartData: { // city forecast data
-            type: Object,
+            type: Promise,
             required: true
         },
         active: { // popup active flag (if set, renders plot immediately on chartData changes)
@@ -124,14 +175,16 @@ export default {
             },
             dragging: false, /* dragging state */
             showToolbar: 0, /* toolbar opacity */
-            openMenu: 0 /* download menu is open */
+            openMenu: 0, /* download menu is open */
+            data: null,
+            status: null
         }
     },
 
     computed: {
         forecastVariables: function() {
         /* returns a list of plot variables */
-            return Object.keys(this.chartData.variables);
+            return Object.keys(this.data.variables);
         }
     },
 
@@ -182,12 +235,46 @@ export default {
 
         saveImage(variable, scale = 1) {
             window.open(this.$refs[variable][0].exportImage(scale));
+        },
+
+        onWheel: function(event, index) {
+            this.zoom(Math.sign(-event.deltaY)*0.2, index);
+        }
+    },
+
+    watch: {
+        async chartData(newValue, oldValue) {
+            this.status = 'loading';
+            try {
+                this.data = await newValue;
+                this.status = 'ready'
+            }
+            catch(error) {
+                this.status = 'error';
+            }
+        }
+
+    },
+
+    async created() {
+        this.status = 'loading';
+        try {
+            this.data = await this.chartData;
+            this.status = 'ready'
+        }
+        catch(error) {
+            this.status = 'error'
         }
     },
 
     mounted() {
         /* listen to wheel events for zooming */
-        this.$on('wheel', (event, index) => { this.zoom(Math.sign(-event.deltaY)*0.2, index); });
+        //this.$on('wheel', (event, index) => { this.zoom(Math.sign(-event.deltaY)*0.2, index); });
+        this.$on('wheel', this.onWheel);
+    },
+
+    destroyed() {
+        this.$off();
     }
 };
 </script>
@@ -195,6 +282,7 @@ export default {
 <style scoped>
 .popup {
     width: 345px;
+    min-height: 309px;
 }
 
 .zoomable {

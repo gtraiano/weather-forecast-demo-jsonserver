@@ -16,6 +16,10 @@ city weather forecast object
 	
 	name 						object 		city name in locales
 		locale={en, el}			string 		name translation in locale (en, el)
+
+	country
+
+	continent
 	
 	id 							int			id
 	
@@ -43,10 +47,17 @@ const extractName = entry => {
 	)
 }
 
+const extractCountry = entry => {
+	return Object.assign(
+		{},
+		...store.i18n.availableLocales.map( locale => ({ [locale]: entry.location[locale].address.country || entry.location[locale].address.country_code  }) )
+	)
+}
+
 const extractForecastData = entry => {
 /* extracts hourly forecast data from OpenWeather API response */
 	return {
-		hourlyWeatherIcon: entry.hourly.map(hour => `http://openweathermap.org/img/wn/${hour.weather[0].icon}@2x.png`),
+		hourlyWeatherIcon: entry.hourly.map(hour => `https://openweathermap.org/img/wn/${hour.weather[0].icon}@2x.png`),
 		hourlyDt: entry.hourly.map(hour => hour.dt*1000), // unix to js datetime
 		temperature: entry.hourly.map(hour => hour.temp),
 		humidity: entry.hourly.map(hour => hour.humidity),
@@ -59,6 +70,8 @@ const transformDatabaseData = entry => {
 	return {
 		coords: { lat: entry.lat, lon: entry.lon },
 		name: extractName(entry),
+		country: extractCountry(entry),
+		continent: entry.timezone.substring(0, entry.timezone.indexOf('/')),
 		id: entry.location.en.place_id,
 		forecast: extractForecastData(entry)
 	};
@@ -88,6 +101,9 @@ const actions = {
 		if(typeof forceRefetch !== 'undefined') {
 			refetch = forceRefetch;
 		}
+		else if(upToDate < (Date.now() + 12*3600000)) { // if data older than 12 hours
+			refetch = true;
+		}
 
 		let data = refetch ? await updateAllCities() : await getAllCities();
 		data = data.map(city => transformDatabaseData(city));
@@ -95,7 +111,7 @@ const actions = {
 		console.log('Fetched forecast data from', refetch ? 'OpenWeather' : 'backend');
 		
 		context.commit('setAllCityData', data); // save api data to state
-		window.localStorage.setItem('upToDate', JSON.stringify(data[0].forecast.hourlyDt[47]));
+		window.localStorage.setItem('upToDate', JSON.stringify( Math.min( ...data.map(d => d.forecast.hourlyDt[47]) ) ));
 
 		context.commit('setLastChangedOn', Date.now());
 	},
@@ -105,21 +121,11 @@ const actions = {
 	},
 
 	appendCityAsync: async (context, city) => {
-		// check if city already exists
-		/*let exists = context.state.allCityData.findIndex(entry => { // comparing lat & lon
-			return entry.coords.lat == Number.parseFloat(city.lat) && entry.coords.lon == Number.parseFloat(city.lon)
-		});
-		if(exists != -1) {
-			console.log(city.name, 'was not added because it already exists!');
-			return;
-		}*/
-		//console.log('Adding city', {...city});
 		let newCity = await postCityLatLon(city.lat, city.lon, store.i18n.availableLocales);
 
 		context.commit('appendCity', transformDatabaseData(newCity));
 		context.commit('setLastChangedOn', Date.now());
 		store.dispatch('search/setAddedCities', { lat: newCity.lat, lon: newCity.lon });
-		
 	},
 
 	updateCityForecastDataAsync: async (context, city) => {
@@ -145,7 +151,6 @@ const mutations = {
 	},
 
 	appendCity: (state, city) => {
-		//city.id = Math.max(...state.allCityData.map(city => city.id)) + 1;
 		state.allCityData = [...state.allCityData, city];
 	},
 

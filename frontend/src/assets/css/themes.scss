@@ -1,0 +1,377 @@
+@import '~bootstrap/scss/bootstrap.scss';
+@import '~bootstrap-vue/src/index.scss';
+
+[theme="regular"] {
+	// nothing to change
+}
+
+[theme="dark"] {
+    body {
+    	background-color: black;
+    	color: var(--light);
+    }
+
+    p, h1, h2, h3, h4, h5, h6, span, li, ul {
+    	color: var(--light);
+    }
+
+    input, input:focus {
+    	color: var(--light);
+    	background-color: var(--dark);
+    	border-color: var(--gray);
+    }
+
+    .input-group-append, .input-group-append * {
+    	background-color: var(--dark) !important;
+    	color: var(--light) !important;
+    }
+
+    .list-group-item {
+    	background-color: var(--dark);
+    	border-color: var(--light);
+    }
+
+    .b-icon {
+    	color: var(--light);
+    }
+
+    .b-form-spinbutton .btn * {
+    	color: var(--dark);
+    }
+
+    .dropdown-menu {
+    	background-color: var(--gray);
+    }
+
+    .dropdown-item:hover {
+    	background-color: var(--dark);
+    	color: var(--light);
+    }
+
+    .custom-select  {
+    	background-color: var(--gray);
+    	color: var(--white);
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='rgb(255,255,255)' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E"); //select arrow
+    }
+
+    .custom-select[disabled="disabled"] {
+    	opacity: 0.5;
+    }
+
+    .table {
+    	background-color: var(--secondary);
+    }
+
+    .table span {
+    	color: var(--light);
+    }
+
+    tr {
+    	background-color: var(--dark);
+    }
+
+    thead .b-icon {
+    	color: var(--dark);
+    }
+
+    .table tr td a span, .table tr td a:link, .table tr td a:focus, .table tr td a:active, .table tr td a:visited {
+    	color: var(--warning);
+    }
+
+    tr td a .b-icon.bi {
+    	color: var(--light);
+    }
+
+    tr td {
+    	color: var(--light);
+    }
+
+    .card {
+    	background-color: var(--gray);
+    }
+
+    .card-subtitle.text-muted {
+    	color: var(--light) !important;
+    	opacity: 0.75;
+    }
+
+    .page-item.active .page-link {
+    	background-color: var(--black);
+    	color: var(--white);
+    	border-color: var(--black);
+    }
+
+    .page-item.disabled .page-link {
+    	background-color: var(--gray);
+    	color: black;
+    	//opacity: 0.8
+    }
+
+    .page-link {
+    	background-color: var(--gray);
+    	color: var(--light);
+    }
+
+    .close {
+    	color: var(--light);
+    }
+
+    .chartjs-render-monitor {
+  		background-color: revert;
+	}
+
+	div.chartjs-render-monitor {
+		background-color: white;
+	}
+
+	.leaflet-popup {
+		background-color: lightgray;
+	}
+
+	.leaflet-popup-tip {
+		background-color: lightgray;
+	}
+	.leaflet-popup-content-wrapper, .leaflet-popup-content-wrapper .chartjs-render-monitor {
+		background-color: lightgray;
+	}
+
+	.leaflet-popup-content-wrapper .tabs {
+		background-color: lightgray;
+	}
+
+	.leaflet-popup-content-wrapper .nav-link {
+		background-color: lightgray;
+	}
+
+	.leaflet-popup-content-wrapper .nav-link.active {
+		background-color: #007bff;
+		color: #fff;
+	}
+
+	#toolbar-save-image .dropdown-menu {
+		background-color: lightgray;
+	}
+
+	#toolbar-save-image .b-icon, #toolbar .btn .b-icon {
+		color: initial;
+	}
+
+	#toolbar-save-image .dropdown-menu .dropdown-item:hover {
+		background-color: var(--gray);
+	}
+
+	scrollbar-color: gray var(--light);
+
+}
+
+[theme="terminal"] {
+	@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap');
+
+	* {
+		font-family: 'Ubuntu Mono', monospace;
+	}
+    
+    body {
+    	background-color: darkblue;
+    	color: var(--green);
+    }
+
+    p, h1, h2, h3, h4, h5, h6, span, li, ul {
+    	color: var(--green);
+    }
+
+    .b-icon {
+    	color: var(--green);
+    }
+
+    .b-form-spinbutton {
+    	background-color: darkblue;
+    }
+
+    .b-form-spinbutton .btn * {
+    	color: var(--light);
+    }
+
+    bdi {
+    	color: var(--light);
+    }
+
+    .dropdown-menu {
+    	background-color: darkblue;
+    }
+
+    .dropdown-item {
+    	color: var(--green);
+    }
+
+    .input-group-append, .input-group-append {
+        background-color: inherit;
+        color: inherit;
+        border-style: solid;
+        border-width: 1px;
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 3px;
+        border-color: var(--light);
+    }
+
+    .top-header .btn {
+        background-color: inherit;
+        border: none;
+    }
+
+    .show > .btn {
+        background-color: var(--light);
+        color: var(--green);
+    }
+
+    .list-group-item .btn {
+        border-color: darkblue;
+    }
+
+    .btn {
+        background-color: darkblue;
+        color: var(--light);
+        border-color: var(--light);
+    }
+
+    .dropdown-item:hover {
+    	//background-color: var(--dark);
+        background-color: var(--light);
+    }
+
+    .custom-select  {
+    	background-color: darkblue;
+    	color: var(--green);
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='rgb(40,167,69)' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E"); //select arrow (https://stackoverflow.com/questions/46836406/bootstrap-4-how-to-amend-custom-select-arrow-to-change-colour)
+    }
+
+    .custom-select[disabled="disabled"] {
+    	opacity: 0.5;
+    }
+
+    .list-group-item {
+    	background-color: seashell;
+    	border-color: gainsboro;
+    }
+
+    .table {
+    	background-color: none;
+    }
+
+    .table span {
+    	color: var(--green);
+    }
+
+    tr {
+    	background-color: var(--dark);
+    }
+
+    .table tr td a span, .table tr td a:link, .table tr td a:focus, .table tr td a:active, .table tr td a:visited {
+    	color: lightgreen;
+    }
+
+    tr td a .b-icon.bi {
+    	color: var(--green);
+    }
+
+    tr td {
+    	color: var(--green);
+    }
+
+    input, input:focus {
+    	color: var(--green);
+    	background-color: darkblue;
+    }
+
+    .input-group-text {
+    	background-color: darkblue !important;
+    }
+
+    .card {
+    	background-color: var(--dark);
+    }
+
+    .card-subtitle.text-muted {
+    	color: var(--light) !important;
+    	opacity: 0.75;
+    }
+
+    .page-item.active .page-link {
+    	background-color: var(--light);
+    	color: var(--green);
+    	border-color: var(--light);
+    }
+
+    .page-item.disabled .page-link {
+    	background-color: darkblue;
+    	color: var(--light);
+    	border-color: none;
+    }
+
+    .page-link {
+    	background-color: darkblue;
+    	color: var(--green);
+    }
+
+    .close {
+    	color: var(--light);
+    }
+
+    .chartjs-render-monitor {
+  		background-color: revert;
+	}
+
+	div.chartjs-render-monitor {
+		background-color: white;
+	}
+
+	.leaflet-popup {
+		background-color: darkblue;
+	}
+
+	.leaflet-popup-tip {
+		background-color: darkblue;
+	}
+	.leaflet-popup-content-wrapper, .leaflet-popup-content-wrapper .chartjs-render-monitor {
+		background-color: darkblue;
+	}
+
+	.leaflet-popup-content-wrapper .tabs {
+		background-color: darkblue;
+	}
+
+	.leaflet-popup-content-wrapper .nav-link {
+		background-color: darkblue;
+		color: var(--green)
+	}
+
+	.leaflet-popup-content-wrapper .nav-link.active {
+		background-color: var(--light);
+		color: var(--green);
+	}
+
+	#toolbar-save-image .dropdown-menu {
+		background-color: darkblue;
+	}
+
+	#toolbar-save-image .b-icon, #toolbar .btn .b-icon {
+		color: initial;
+	}
+
+	#toolbar-save-image .dropdown-menu .dropdown-item:hover {
+		background-color: var(--gray);
+	}
+
+	scrollbar-color: gray var(--light);
+
+	.tooltip-inner {
+  		max-width: max-content;
+  		min-width: max-content;
+  		color: var(--green);
+  	}
+
+    .top-header .dropdown-toggle:after {
+        color: var(--green);
+    }
+
+}

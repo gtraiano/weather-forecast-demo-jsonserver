@@ -9,13 +9,9 @@
  -->
 
 <template>
-<div>
-	<!--b-navbar
-		toggleable="lg"
-		type="dark"
-		variant="dark"
-	-->
+<div class="top-header">
 	<b-navbar
+		toggleable="md"
 		type="dark"
 		variant="dark"
 	>
@@ -34,7 +30,8 @@
 					class="ml-auto"
 					style="z-index: 9999;"
 				><!-- draw dropdown menu on top of all other elements -->
-					<b-nav-item><!-- meteorological map -->
+					<!-- meteorological map -->
+					<b-nav-item>
 						<router-link
 							class="regular"
 							to="/"
@@ -43,7 +40,9 @@
 							{{$t('meteomap')}}
 						</router-link>
 					</b-nav-item>
-					<b-nav-item><!-- forecasts -->
+					
+					<!-- forecasts -->
+					<b-nav-item>
 						<router-link
 							class="regular"
 							to="/forecasts"
@@ -52,7 +51,9 @@
 							{{$t('forecasts')}}
 						</router-link>
 					</b-nav-item>
-					<b-nav-item><!-- about -->
+					
+					<!-- about -->
+					<b-nav-item>
 						<router-link
 							class="regular"
 							to="/about"
@@ -62,6 +63,7 @@
 						</router-link>
 					</b-nav-item>
 					
+					<!-- swich language -->
 					<LanguageSwitcher />
 					
 					<!-- search city -->
@@ -81,6 +83,7 @@
 					    	<template #append>
 					      		<b-button
 					      			:title="$t('search forecast data')"
+					      			v-b-tooltip.hover.bottom.ds500
 					      			@click="searchCity()"
 					      		>
 					      			<b-icon-search/>
@@ -88,25 +91,73 @@
 					    	</template>
 					  	</b-input-group>
 					</div>
+					
 					<!-- refresh meteorological data -->
-					<b-button
-						type="dark"
-						variant="dark"
-						@click="refreshForecastData()"
-					>
-						<!-- spin icon while fetching data -->
-			        	<b-icon-arrow-clockwise
-			        		v-if="refreshing"
-			          		:title="$t('refresh forecast data')"
-			          		icon="arrow-clockwise"
-			          		animation="spin"
-			          	/>
-			          	<b-icon-arrow-clockwise
-			        		v-else
-			          		:title="$t('refresh forecast data')"
-			          		icon="arrow-clockwise"
-			          	/>
-			        </b-button>
+					<div>
+						<b-button
+							type="dark"
+							variant="dark"
+							@click="!refreshing ? refreshForecastData() : null"
+							v-b-tooltip.hover.bottom.ds500
+							:title="$t('refresh forecast data')"
+						>
+							<!-- spin icon while fetching data -->
+				        	<b-icon-arrow-clockwise
+				          		
+				          		icon="arrow-clockwise"
+				          		:animation="refreshing ? 'spin' : ''"
+				          	/>
+				        </b-button>
+			    	</div>
+			        
+			        <!-- preferences -->
+			        <div>
+			        	<b-dropdown
+			        		variant="dark"
+			        		right
+			        		lazy
+			        		@show="$store.dispatch('preferences/initializeAvailableProtocols')"
+			        		v-b-tooltip.hover.bottom.ds500
+							:title="$t('preferences')"
+			        	>
+			        		<template #button-content>
+        						<b-icon-gear/>
+      						</template>
+      						<!-- backend protocol select -->
+      						<b-dropdown-form style="min-width: max-content; max-width: max-content;">
+      							<b-form-group
+      								:label="$t('backend protocol')"
+      								class="mb-2"
+      							>
+							         <b-form-select
+							         	:disabled="preferences.backend.availableProtocols.filter(p => p.status === true).length === 1"
+								        :options="preferences.backend.availableProtocols.filter(p => p.status === true).map(p => ({ text: p.protocol.toUpperCase(), value: p.protocol }) )"
+								        :value="preferences.backend.activeProtocol"
+								        @change="$event => $store.dispatch('preferences/setActiveProtocol', $event)"
+								     />
+								     <!--label>on port {{ preferences.backend.port }}</label-->
+						        </b-form-group>
+						        
+						        <!-- detailed forecast pagination/scrollbar select -->
+						        <b-form-group :label="$t('detailed forecast style')">
+						          <b-form-select
+							          :options="['paginated', 'scrollbar'].map(o => ({ text: $t(o), value: o}))"
+							          :value="preferences.frontend.detailedForecastStyle"
+							          @change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.detailedForecastStyle', value: $event })"
+							      />
+						        </b-form-group>
+						        
+						        <!-- theme -->
+						        <b-form-group :label="$t('theme')">
+						          <b-form-select
+							          :options="preferences.frontend.availableThemes"
+							          :value="preferences.frontend.activeTheme"
+							          @change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.activeTheme', value: $event })"
+							      />
+						        </b-form-group>
+      						</b-dropdown-form>
+			        	</b-dropdown>
+			        </div>
 				</b-navbar-nav>
 			</b-collapse>
 	</b-navbar>
@@ -116,13 +167,16 @@
 <script type = "text/javascript">
 import Vue from 'vue';
 import LanguageSwitcher from './LanguageSwitcher.vue';
-import { BIconArrowClockwise, BIconSearch } from 'bootstrap-vue';
+import { BIconArrowClockwise, BIconSearch, BIconGear } from 'bootstrap-vue';
+import { pingProtocol } from '../controllers/backend';
+import { mapGetters } from 'vuex';
 
 export default {
 	components: {
 		LanguageSwitcher,
 		BIconArrowClockwise,
-		BIconSearch
+		BIconSearch,
+		BIconGear
 	},
 
 	data() {
@@ -139,14 +193,28 @@ export default {
 		},
 
 		async searchCity() {
-			this.$store.dispatch('search/setShowResults', true);
+			await this.$store.dispatch('search/setShowResults', true);
 			await this.$store.dispatch('search/searchCity');
 		}
+	},
+
+	computed: {
+		...mapGetters({
+			preferences: 'preferences/getPreferences'
+		})
 	}
 }
 </script>
 
 <style scoped>
+.top-header {
+    background-color: gray;
+    margin-bottom: 1%;
+    position: sticky;
+    top: 0;
+    z-index: 2147483647;
+}
+
 .logo {
     height: 50px;
 }
@@ -177,5 +245,15 @@ export default {
 
 .form-control {
 	height: unset;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  display: inline-block;
+  margin: 0 10px;
 }
 </style>

@@ -9,24 +9,19 @@
  -->
 
 <template>
-
 <b-container fluid>
-    <b-row class="topinfo">
-        <b-col/>
-    </b-row>
-
     <!-- display map -->
     <b-row>
         <b-col/>
 
         <b-col cols=10>
             <GeneralMap
-                height="80vh"
+                height="85vh"
                 width="100%"
                 :zoom="zoom"
                 :center="center"
                 :mapUrl="mapUrl"
-                :mapIconScale="iconScale"
+                :iconScale="(zoom/18)*1.5"
                 :markerData="cityData"
                 :chartData="chartData"
                 :openWeatherOptions="options"
@@ -95,6 +90,10 @@
 import { mapGetters } from 'vuex'
 import GeneralMap from './GeneralMap.vue'
 
+const hoursPassed = (end, start) => {
+    return Math.floor((end - start)/3600000);
+}
+
 export default {
     name: 'Map',
 
@@ -105,11 +104,11 @@ export default {
     data () {
         return {
             // map url and options
-            mapUrl: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            mapUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
             zoom: 6,
             center: { lat: 38.436111, lng: 26.112442 },
             bounds: null,
-            iconScale: 1.0,
+            //iconScale: 1.0,
 
             activeCityPopup: -1, // city id of displayed popup
           
@@ -119,18 +118,13 @@ export default {
     },
 
     async created() {
-        if(!this.cityData.length) {
-            console.log('Load our data first');
-            await this.$store.dispatch('allCityData/setAllCityDataAsync');
-        }
-
         this.options = this.populateOptions();
 
         if(window.localStorage.getItem('activeLayers')) { // load control panel options from local storage
-            this.activeLayers = JSON.parse(window.localStorage.getItem('activeLayers'))
+            this.activeLayers = JSON.parse(window.localStorage.getItem('activeLayers'));
         }
         else {
-            this.activeLayers = ['temp_new', 'clouds_new'] // default values
+            this.activeLayers = ['temp_new', 'clouds_new']; // default values
         }
     },
 
@@ -140,15 +134,19 @@ export default {
         this.$on('centerUpdated', value => { this.center = value; });
         this.$on('boundsUpdated', value => { this.bounds = value; });
         this.$on('activeCityPopupUpdated', value => { this.activeCityPopup = value; });
-        this.$on('activeOpenWeatherLayersUpdated', value => { this.activeLayers = value; });
+        this.$on('activeOpenWeatherLayersUpdated', value => {
+            this.activeLayers = value;
+            window.localStorage.setItem('activeLayers', JSON.stringify(this.activeLayers)); // save control panel options
+        });
     },
 
     beforeUpdate() {
-        // save control panel options
-        window.localStorage.setItem('activeLayers', JSON.stringify(this.activeLayers));
-
         // update switch box labels on languange change
         this.options = this.populateOptions();
+    },
+
+    destroyed() {
+        this.$off()
     },
 
     methods: {
@@ -171,9 +169,8 @@ export default {
 
         currentWeatherIcon(city) {
         /* returns weather icon for current datetime hour */
-            //let index = city.forecast.hourlyDt.findIndex(dt => dt >= Date.now());
-            let index = city.forecast.hourlyDt.findIndex( dt => Math.floor(Date.now() - dt)/(3600*1000) );
-            return city.forecast.hourlyWeatherIcon[index];
+            const index = city.forecast.hourlyDt.findIndex( dt => hoursPassed(Date.now(), dt) == 0 );
+            return index !== -1 ? city.forecast.hourlyWeatherIcon[index] : null;
         }
     },
 
@@ -202,7 +199,7 @@ export default {
 
         generateOpenWeatherTileLayers() {
             /* creates urls for active OpenWeather map layers */
-            return this.activeLayers.map(layer => `https://tile.openweathermap.org/map/${layer}/{z}/{x}/{y}.png?appid=${process.env.OW_USER_TOKEN}`)
+            return this.activeLayers.map(layer => `https://tile.openweathermap.org/map/${layer}/{z}/{x}/{y}.png?appid=${process.env.OW_API_KEY}`)
         },
 
         // map store state to computed properties

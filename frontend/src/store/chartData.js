@@ -28,45 +28,48 @@ const forecastVariables = source => {
     return variables;
 }
 
-const generateData = source => {
-/* returns plot data for all cities */
-	if (source && source.length) {
+const generateCityChartData = async city => {
+/* prepares plot data for given city */
+	if (city) {
 		let chartData = [];
 		let labels = [];
 		let data = [];
 
-		return source.map(city => {
-			chartData = [];
+		forecastVariables(city).forEach(variable => {
+			data = city.forecast[variable];
+			labels = city.forecast.hourlyDt;
 
-			forecastVariables(city).forEach(variable => {
-				data = city.forecast[variable];
-				labels = city.forecast.hourlyDt;
+			chartData[variable] = {
+				locale: store.i18n.locale,
+	    		variable: `${store.i18n.t(variable)} ${units[variable]}`, // pass selected variable name
+	    		labels: labels,
+	    		title: city.name[store.i18n.locale],
+	    		datasets: [{
+	           		fill: false,
+	           		tension: 0.1,
+	           		borderColor: "#80b6f4", // if more than one datasets, color should be set randomly or left to chart.js to decide
+	           		label: city.name[store.i18n.locale],
+	           		data: data
+	        	}]
+			};
+		})
 
-				chartData[variable] = {
-					locale: store.i18n.locale,
-		    		variable: `${store.i18n.t(variable)} ${units[variable]}`, // pass selected variable name
-		    		labels: labels,
-		    		title: city.name[store.i18n.locale],
-		    		datasets: [{
-		           		fill: false,
-		           		tension: 0.1,
-		           		borderColor: "#80b6f4", // if more than one datasets, color should be set randomly or left to chart.js to decide
-		           		label: city.name[store.i18n.locale],
-		           		data: data
-		        	}]
-				};
-			})
-
-			return {
+		return new Promise((resolve, reject) => {
+			resolve({
 				name: city.name[store.i18n.locale],
 				id: city.id,
-				variables: chartData
-			};
+				variables: chartData		
+			});
 		})
 	}
 	else {
 	  return {};
 	}
+}
+
+const generateData = source => {
+/* returns plot data for all cities */
+	return source && source.length ? source.map(async city => await generateCityChartData(city)) : [] // promises to be resolved when necessary
 }
 
 const state = () => ({
@@ -79,8 +82,8 @@ const getters = {
 }
 
 const mutations = {
-	generateChartData: (state, source) => {
-		state.chartData = generateData(source);
+	setChartData: (state, data) => {
+		state.chartData = data;
 	},
 
 	setLocale: (state, locale) => {
@@ -90,7 +93,7 @@ const mutations = {
 
 const actions = {
 	generateChartData: (context, source) => {
-		context.commit('generateChartData', source);
+		context.commit('setChartData', generateData(source));
 	},
 
 	setLocale: ({ commit }, locale) => {

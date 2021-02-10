@@ -1,12 +1,10 @@
-# demo-weather-forecast
-
+# weather-forecast-demo
 > Demo weather forecast website
 
-## Description
-
-Demonstration of the Weather Forecast Application.
+## Information
 Frontend written in Vue.js, backend in Node + Express.
-Application utilizes
+
+The application utilizes
  - Nominatim and Openstreetmap API for location data
  - OpenWeather API for forecast data
  - Vue Leaflet to render the map
@@ -39,28 +37,45 @@ npm run dev
 # build for production with minification
 npm run build
 ```
+The build will be found under `./frontend/dist/`.
 
 ## Environment
-Make sure you have passed the correct values for the following variables
+A single .env file must reside at the project's root folder. A sample .env file is provided in `.env.sample`.
 
-### Backend
-```
-BACKEND_API_URL=backend path (e.g. /)
-OW_USER_TOKEN=OpenWeather user token
-EXPRESS_SERVER_PORT=Express server port
-MONGODB_PORT=MongoDB server port
+### Express server config
+`EXPRESS_SERVER_PROTOCOLS` Comma separated list including HTTP and/or HTTPS protocols. If HTTPS is included, the frontend will prefer it over HTTP.
 
-# HTTPS certificate
-PRIVATE_KEY=private key file path
-CERTIFICATE=certificate file path
-```
+`EXPRESS_SERVER_HTTP_PORT` HTTP server port
 
-### Frontend
-```
-BACKEND_PORT=backend port
-BACKEND_DOMAIN=backend domain
-BACKEND_PATH=backend root path
-```
+`EXPRESS_SERVER_HTTPS_PORT` HTTPS server port
+#### SSL credentials
+`EXPRESS_SERVER_PRIVATE_KEY` SSL private key file absolute path
+
+`EXPRESS_SERVER_CERTIFICATE` SSL public key file absolute path
+
+`EXPRESS_SERVER_CA` SSL certification authority (optional)
+
+### Backend config
+`MONGODB_PORT` MongoDB port
+
+`BACKEND_DOMAIN` Backend domain
+
+`BACKEND_API_ENDPOINT` Backend endpoint
+
+`OW_API_KEY` OpenWeather API key
+
+### Webpack Dev Server config
+`WEBPACK_DEV_SERVER_HTTPS` Set to 1 to run server with HTTPS protocol
+
+#### SSL credentials
+If not provided, Webpack Dev Server will generate its own.
+
+`WEBPACK_DEV_SERVER_PRIVATE_KEY` SSL private key absolute path
+
+`WEBPACK_DEV_SERVER_CERTIFICATE` SSL public key absolute path
+
+`WEBPACK_DEV_SERVER_CA` SSL certification authority (optional)
+
 
 ## License - Proprietary
 Copyright - Spiros Dimopoulos <sdimopoulos@irisweb.gr>

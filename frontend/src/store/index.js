@@ -6,6 +6,7 @@ import locale from './locale'
 import search from './search'
 import i18n from '../lang/i18n.js'
 import action from './action'
+import preferences from './preferences'
 
 Vue.use(Vuex);
 
@@ -17,7 +18,8 @@ const store = new Vuex.Store({
 		chartData,
 		locale,
 		search,
-		action
+		action,
+		preferences
 	},
 	strict: debug
 });
@@ -35,7 +37,7 @@ store.watch(
 )
 
 store.watch(
-	(state, getters) => getters['allCityData/getLastChangedOn'], // after forecast data has been fetched & saved
+	(state, getters) => getters['allCityData/getLastChangedOn'], // after forecast data has been fetched
 	(newValue, oldValue) => {
 		store.dispatch('chartData/generateChartData', store.getters['allCityData/getAllCityData']); // generate plot data
 		if (debug) {
@@ -44,16 +46,6 @@ store.watch(
 		}
 	}
 )
-
-/*store.watch(
-	(state, getters) => getters['allCityData/getAllCityData'], // on fetching forecast data
-	(newValue, oldValue) => {
-		//window.localStorage.setItem('allCityData', JSON.stringify(newValue)); // save to local storage
-		if(debug) {
-			console.log('Wrote forecast data to localStorage');
-		}
-	}
-)*/
 
 store.watch(
 	(state, getters) => getters['action/getAnswer'], // on answering confirmation dialog

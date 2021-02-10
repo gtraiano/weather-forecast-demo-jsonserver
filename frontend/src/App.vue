@@ -9,6 +9,7 @@
 
 <template>
     <div 
+        v-if="backendStatus"
         id="app"
         tabindex="0"
         @keydown.esc="$store.dispatch('search/clear')"
@@ -51,12 +52,68 @@
             </b-modal>
         </b-overlay>
     </div>
+    <!-- when backend is unaivalable -->
+    <div id="app" tabindex="0" v-else>
+        <!-- message -->
+        <h2 style="margin-top: 50vh">{{$t('await backend')}}</h2>
+        <p>
+            <b-icon-lightning
+                class="h1"
+                animation="fade"
+            />
+        </p>
+        <!-- present alternatives on link click -->
+        <p v-if="$store.getters['preferences/getPreferences'].backend.availableProtocols.length">
+            {{$t('or check other')}} <a href="" @click.prevent = "showAvailable = !showAvailable">{{$t('available options')}}</a>
+        </p>
+        <!-- alternatives -->
+        <div v-if="showAvailable">
+            <h6>Available URLs</h6>
+            <div>
+              <a
+                  v-for="available in $store.getters['preferences/getPreferences'].backend.availableProtocols.filter(p => p.status === true)"
+                  href=""
+                  @click.prevent="$store.dispatch('preferences/setActiveProtocol', available.protocol)"
+              >
+                  {{ available.url }}
+              </a>
+              <br>
+            </div>
+
+            <!-- set backend url manually (experimental, not working) -->
+            <!--div style="margin-left: 39%; margin-right: 39%; margin-top: 2vh;">
+                <h6>Set URL manually</h6>
+                <b-form
+                    @submit="setBackendUrl($event.srcElement[0]._value)"
+                    @reset="$event.srcElement[0]._value = null"
+                >
+                    <b-form-group
+                        id="input-group-1"
+                        label-for="input-1"
+                      >
+                          <b-form-input
+                            id="input-1"
+                            type="url"
+                            placeholder="Enter backend URL"
+                            required
+                            trim
+                          />
+                      </b-form-group>
+
+                      <b-button type="submit" variant="primary">Submit</b-button>
+                      <b-button type="reset" variant="danger">Reset</b-button>
+                </b-form>
+            </div-->
+        </div>
+    </div>
 </template>
 
 <script>
 import TopHeader from './components/TopHeader.vue';
-import { BOverlay, BButton, BModal } from 'bootstrap-vue'
+import { BOverlay, BButton, BModal, BIconLightning } from 'bootstrap-vue'
 import SearchResults from './components/SearchResults.vue';
+import { pingActiveProtocol, setBackendUrl } from './controllers/backend.js';
+import { mapGetters } from 'vuex'
 
 export default {
 	name: 'app',
@@ -66,8 +123,82 @@ export default {
     BOverlay,
     BButton,
     BModal,
-    SearchResults
-	}
+    SearchResults,
+    BIconLightning
+	},
+
+  data() {
+      return {
+          backendStatus: null,
+          pingHandle: null,
+          showAvailable: false
+      }
+  },
+
+  methods: {
+      async checkBackendStatus() {
+          try {
+              const res = await pingActiveProtocol();
+              this.backendStatus = res ? res.status == 200 : false;
+          }
+          catch(error) {
+              //this.backendStatus = 0;
+          }
+      },
+
+      async initializateApp() {
+          try {
+              console.log('Checking backend status');
+              await this.$store.dispatch('preferences/initializeAvailableProtocols');
+              await this.checkBackendStatus();
+              console.log('Loading forecast data');
+              await this.$store.dispatch('allCityData/setAllCityDataAsync');
+          }
+          catch(error) {
+              console.log('Backend status is', this.backendStatus ? 'online' : 'offline'); 
+          }
+      },
+
+      setBackendUrl(url) {
+          setBackendUrl(url);
+      }
+  },
+
+  computed: {
+      ...mapGetters({
+          preferences: 'preferences/getPreferences'
+      }),
+
+      theme() {
+          return this.preferences.frontend.activeTheme;
+      }
+  },
+
+  watch: {
+      async backendStatus() {
+          try {
+              await this.checkBackendStatus();
+          }
+          catch(error) {
+              console.log('Backend status is', this.backendStatus ? 'online' : 'offline'); 
+          }
+          this.backendStatus
+              ? (clearInterval(this.pingHandle), await this.initializateApp())
+              : this.pingHandle = setInterval(this.checkBackendStatus, 3000); // reset interval if necessary
+      },
+
+      theme() {
+          document.documentElement.setAttribute('theme', this.theme);
+      }
+  },
+
+  async created() {
+      await this.initializateApp();
+  },
+
+  mounted() {
+      document.documentElement.setAttribute('theme', this.theme);
+  }
 }
 </script>
 
@@ -127,22 +258,7 @@ h1, h2 {
   font-weight: normal;
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-
 a {
   color: #42b983;
-}
-
-.topinfo {
-    background-color: gray;
-    margin-top: 3%;
 }
 </style>

@@ -4,6 +4,7 @@ import VueRouter from 'vue-router'
 import App from './App.vue'
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap-vue/dist/bootstrap-vue.css"
+import './assets/css/themes.scss';
 import Map from './components/Map.vue';
 import Forecasts from './components/Forecasts.vue';
 import About from './components/About.vue'
