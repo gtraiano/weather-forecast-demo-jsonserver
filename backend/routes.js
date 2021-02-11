@@ -122,13 +122,13 @@ router.get('/coords', async (req, res, next) => {
 });
 
 router.get('/coords/refetch', async (req, res, next) => {
-/* get all cities from database */
+/* get all cities from database and refreshes their forecast data */
 	let results = await forecastDb.allCities();
 	
 	results = await Promise.all(
 		results.map( async city => ({ ...city, ...await refetchForecastData(city.lat, city.lon) }) )
 	);
-	await forecastDb.insertCities(results);
+	await forecastDb.updateCities(results);
 
 	res.json(results);
 });
@@ -165,8 +165,7 @@ router.get('/coords/:lat/:lon/refetch', async (req, res, next) => {
 		}
 
 		const updated = await refetchForecastData(req.params.lat, req.params.lon);
-		await forecastDb.insertCity({ ...cityData, ...updated });
-		forecastData = await forecastDb.findCity(req.params.lat, req.params.lon);
+		forecastData = await forecastDb.updateCity(req.params.lat, req.params.lon, { ...cityData, ...updated });
 		forecastData ? res.json(forecastData) : res.status(404).end();
 	}
 	catch(error) {
@@ -199,8 +198,8 @@ router.put('/coords/:lat/:lon', async (req, res, next) => {
 
 		}
 		const result = await forecastDb.updateCity(req.params.lat, req.params.lon, body);
-		if(result.matchedCount && result.modifiedCount) res.json(200).end();
-		else if(result.matchedCount && !result.modifiedCount) res.status(304).end();
+		if(result) res.json(200).end();
+		//else if(result.matchedCount && !result.modifiedCount) res.status(304).end();
 		else res.status(404).end();
 	}
 	catch(error){
@@ -269,7 +268,7 @@ router.post('/coords/:lat/:lon', async (req, res, next) => {
 
 router.delete('/coords/:lat/:lon', async (req, res, next) => {
 	const result = await forecastDb.removeCity(req.params.lat, req.params.lon);
-	res.status(result.deletedCount === 1 ? 200 : 404).end();
+	res.status(result).end();
 });
 
 router.get('/openweather/:lat/:lon', async (req, res, next) => {
