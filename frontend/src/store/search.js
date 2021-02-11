@@ -2,17 +2,19 @@ import { nominatimSearchName } from '../controllers/backend';
 import store from './'
 
 const transform = results => {
-    return results.map(result => {
-        let regionInfo = result.display_name.split(',').map(s => s.trim());
-        return {
-            lat: result.lat,
-            lon: result.lon,
-            name: regionInfo[0],
-            region: regionInfo[1],
-            postCode: regionInfo[regionInfo.length - 2],
-            country: regionInfo[regionInfo.length - 1]
-        }
-    })
+    return results
+        ? results.map(result => {
+            let regionInfo = result.display_name.split(',').map(s => s.trim());
+            return {
+                lat: result.lat,
+                lon: result.lon,
+                name: regionInfo[0],
+                region: regionInfo[1],
+                postCode: regionInfo[regionInfo.length - 2],
+                country: regionInfo[regionInfo.length - 1]
+            }
+        })
+        : []
 }
 
 const state = () => ({
