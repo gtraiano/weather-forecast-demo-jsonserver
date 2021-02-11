@@ -13,7 +13,7 @@ The application utilizes
 ## Build Setup
 
 ### Backend
-Make sure MongoDB is running before starting the backend
+A version of weather-forecast-demo using JSON Server for permanent storage.
 
 ``` bash
 # install dependencies
@@ -56,7 +56,9 @@ A single .env file must reside at the project's root folder. A sample .env file 
 `EXPRESS_SERVER_CA` SSL certification authority (optional)
 
 ### Backend config
-`MONGODB_PORT` MongoDB port
+`DB_FILE_PATH` forecast data JSON file path
+
+`JSON_SERVER_PORT` JSON Server port
 
 `BACKEND_DOMAIN` Backend domain
 
