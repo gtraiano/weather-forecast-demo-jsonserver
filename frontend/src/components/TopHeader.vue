@@ -235,6 +235,10 @@ export default {
 	color: white;
 }
 
+>>> .dropdown-menu {
+	top: 50px;
+}
+
 *:focus {
 	outline: none;
 }
