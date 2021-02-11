@@ -162,6 +162,14 @@
 
 	scrollbar-color: gray var(--light);
 
+    .modal-content {
+        background-color: gray;
+    }
+
+    .b-overlay .position-absolute h3 {
+        color: black;
+    }
+
 }
 
 [theme="terminal"] {
