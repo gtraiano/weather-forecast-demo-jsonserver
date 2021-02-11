@@ -89,9 +89,9 @@ process.on('uncaughtException', async error => {
 // connect to db up to #retries attempts
 async function connectDb(retries = 5) {
 	try {
-		console.log('Connecting to MongoDB server')
+		console.log('Connecting to JSON server');
 		await forecastDb.connect();
-		console.log('Connected to MongoDB server on port', process.env.MONGODB_PORT);	
+		console.log('Connected to JSON server on port', process.env.JSON_SERVER_PORT);	
 	}
 	catch(error) {
 		if(retries === 1) {
@@ -99,8 +99,9 @@ async function connectDb(retries = 5) {
 			process.exitCode = 1;
 			process.exit();
 		}
-		console.error(`Failed to connect to MongoDB server on port ${process.env.MONGODB_PORT} [Error: ${error.message}]`);
-		console.log(`Retrying to connect to MongoDB server, remaining attempts: ${retries - 1}`);
+		console.error(`Failed to connect to JSON server on port ${process.env.JSON_SERVER_PORT} [Error: ${error.message}]`);
+		console.log(`Retrying to connect to JSON server, remaining attempts: ${retries - 1}`);
+		setTimeout(() => {}, 2000);
 		return connectDb(retries - 1);
 	}
 }
@@ -108,7 +109,7 @@ async function connectDb(retries = 5) {
 // exit app gracefully with given code
 async function exit(exitCode = 0) {
 	await forecastDb.close();
-	console.log('Closed MongoDB connection');
+	console.log('Closed JSON server');
 	
 	console.log('Shutting server');
 	if(protocols.includes('http')) httpServer.close();
