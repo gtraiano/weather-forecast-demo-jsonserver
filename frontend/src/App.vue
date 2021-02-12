@@ -16,22 +16,49 @@
     >
         <!-- display overlay with search results -->
         <b-overlay
-            style="height: 99vh"
+            style="height: 99vh;"
             :show="$store.getters['search/getShowResults'] && !$store.getters['action/getShow']"
             :z-index="(Number.MAX_VALUE/8).toLocaleString('fullwide', { useGrouping: false })"
         >
             <template #overlay>
-                <h3> {{ $t('search for')}} <i>"{{ $store.getters['search/getSearchTerm'] }}"</i></h3>
-                <div v-if="$store.getters['search/getShowResults']">
-                    <SearchResults :results="$store.getters['search/getSearchResults']" />
+                <div style="min-width: 20vw; max-width: 30vw;">
+                    <h3> {{ $t('search for')}} <i>"{{ $store.getters['search/getSearchTerm'] }}"</i></h3>
+
+                    <div style="margin-bottom: 1vh; height: inherit;">
+                        <b-input-group>
+                            <b-form-input
+                                id="search-input"
+                                class="search"
+                                :value="$store.getters['search/getSearchTerm']"
+                                :placeholder="$t('add city')"
+                                trim
+                                @keydown.enter="searchCity()"
+                                style="background-color: #fff; height: inherit;"
+                            />
+                            <template #append>
+                                <b-button
+                                  @click="searchCity()"
+                                >
+                                  <b-icon-search/>
+                                </b-button>
+                            </template>
+                          </b-input-group>
+                      </div>
+
+                    <div v-if="$store.getters['search/getShowResults']">
+                        <SearchResults :results="$store.getters['search/getSearchResults']" />
+                    </div>
+                    <br>
+                    <b-button @click="$store.dispatch('search/clear')">
+                        {{ $t('close') }}
+                    </b-button>
                 </div>
-                <br>
-                <b-button @click="$store.dispatch('search/clear')">
-                    {{ $t('close') }}
-                </b-button>
             </template>
+            
             <TopHeader/>
+            
             <router-view/>
+            
             <!-- intended to render modal inside the overlay but had trouble with its z-index being lower than the overlay's -->
             <b-modal
                 no-fade
@@ -52,6 +79,7 @@
             </b-modal>
         </b-overlay>
     </div>
+    
     <!-- when backend is unaivalable -->
     <div id="app" tabindex="0" v-else>
         <!-- message -->
@@ -110,7 +138,7 @@
 
 <script>
 import TopHeader from './components/TopHeader.vue';
-import { BOverlay, BButton, BModal, BIconLightning } from 'bootstrap-vue'
+import { BOverlay, BButton, BModal, BIconLightning, BIconSearch } from 'bootstrap-vue'
 import SearchResults from './components/SearchResults.vue';
 import { pingActiveProtocol, setBackendUrl } from './controllers/backend.js';
 import { mapGetters } from 'vuex'
@@ -124,7 +152,8 @@ export default {
     BButton,
     BModal,
     SearchResults,
-    BIconLightning
+    BIconLightning,
+    BIconSearch
 	},
 
   data() {
@@ -161,6 +190,14 @@ export default {
 
       setBackendUrl(url) {
           setBackendUrl(url);
+      },
+
+      async searchCity() {
+          //console.log(event.target.value);
+          //console.log(document.getElementById('search-input').value);
+          this.$store.dispatch('search/setSearchTerm', document.getElementById('search-input').value);
+          await this.$store.dispatch('search/setShowResults', true);
+          await this.$store.dispatch('search/searchCity');
       }
   },
 
