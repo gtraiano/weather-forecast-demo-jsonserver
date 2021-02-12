@@ -170,6 +170,10 @@
         color: black;
     }
 
+    .b-overlay .position-absolute input {
+        color: black;
+    }
+
 }
 
 [theme="terminal"] {
@@ -233,6 +237,14 @@
     }
 
     .list-group-item .btn {
+        border-color: darkblue;
+    }
+
+    .b-overlay .position-absolute .btn {
+        border-color: darkblue;
+    }
+
+    .modal-content .btn {
         border-color: darkblue;
     }
 
@@ -381,5 +393,4 @@
     .top-header .dropdown-toggle:after {
         color: var(--green);
     }
-
 }
