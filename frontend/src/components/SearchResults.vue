@@ -2,7 +2,7 @@
 	<!-- render results if they exist -->
 	<b-list-group
 		v-if="results.length"
-		:style="{ maxHeight: '500px', overflow: 'auto'}"
+		:style="{ maxHeight: '500px', overflow: 'auto', scrollbarWidth: 'thin'}"
 	>
 		<b-list-group-item
 			v-for="(result, index) in results"
@@ -11,7 +11,7 @@
 			class="flex-column align-items-start"
 		>
 		    <div class="d-flex w-100 justify-content-between">
-			    <h5 class="mb-1">{{ result.name }}</h5>
+			    <h5 class="mb-1 text-left">{{ result.name }}</h5>
 			    <span v-if="isAdded(result)"> <b-icon-check scale="2"/> </span>
 			    <span v-else-if="alreadyExists(result)" :style="{fontSize: '80%'}">{{ $t('already added') }}</span>
 		      	<b-button
@@ -24,7 +24,7 @@
 		      	
 		      	
 		    </div>
-		    <p class="mb-1 d-flex w-100">
+		    <p class="mb-1 d-flex w-100 text-left">
 		    	{{ result.region }}, {{ result.postCode }}, {{ result.country }}
 		    </p>
 		</b-list-group-item>
