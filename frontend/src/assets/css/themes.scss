@@ -126,6 +126,7 @@
 
 	.leaflet-popup {
 		background-color: lightgray;
+        border-radius: 12px;
 	}
 
 	.leaflet-popup-tip {
@@ -166,14 +167,15 @@
         background-color: gray;
     }
 
-    .b-overlay .position-absolute h3, h4 {
-        color: black;
-    }
+    .b-overlay .position-absolute {
+        h3, h4 {
+            color: black;
+        }
 
-    .b-overlay .position-absolute input {
-        color: black;
+        input {
+            color: black;
+        }
     }
-
 }
 
 [theme="terminal"] {
@@ -289,6 +291,10 @@
         border-color: darkblue;
     }
 
+    #toolbar-save-image .btn, #toolbar .btn {
+        background-color: var(--light);
+    }
+
     .btn {
         background-color: darkblue;
         color: var(--light);
@@ -388,6 +394,7 @@
 
 	.leaflet-popup {
 		background-color: darkblue;
+        border-radius: 12px;
 	}
 
 	.leaflet-popup-tip {
@@ -422,6 +429,10 @@
 	#toolbar-save-image .dropdown-menu .dropdown-item:hover {
 		background-color: var(--gray);
 	}
+
+    #toolbar-save-image .dropdown-toggle::after {
+        color: black;
+    }
 
 	scrollbar-color: gray var(--light);
 
