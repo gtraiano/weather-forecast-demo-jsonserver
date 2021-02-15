@@ -1,7 +1,6 @@
 import store from './'
 import { 
 	getAllCities,
-	updateAllCities,
 	postCityLatLon,
 	deleteCityLatLon,
 	updateCityLatLon
@@ -105,8 +104,18 @@ const actions = {
 			refetch = true;
 		}
 
-		let data = refetch ? await updateAllCities() : await getAllCities();
+		let data = await getAllCities();
 		data = data.map(city => transformDatabaseData(city));
+
+		if(refetch) {
+			data.forEach(async city => {
+				// query backend to refresh city forecast and fetch data
+				const updated = await updateCityLatLon(city.coords.lat, city.coords.lon);
+				if(updated)
+					context.commit('updateCityForecastData', { lat: city.coords.lat, lon: city.coords.lon, data: transformDatabaseData(updated) });
+			});
+
+		}
 		
 		console.log('Fetched forecast data from', refetch ? 'OpenWeather' : 'backend');
 		
