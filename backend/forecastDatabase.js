@@ -16,7 +16,7 @@ const insertCity = async city => {
 	}
 	catch(error) {
 		console.log(`Inserting (lat:${city.lat} lon:${city.lon}) failed`);
-		return null;
+		return {};
 	}
 }
 
@@ -39,7 +39,7 @@ const updateCity = async (lat, lon, data) => {
 	}
 	catch(error) {
 		console.log(`lat: ${lat} lon: ${lon} does not exist`);
-		return null;
+		return {};
 	}
 }
 
