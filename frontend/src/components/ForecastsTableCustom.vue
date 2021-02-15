@@ -110,7 +110,7 @@
     
     <!-- forecast values column -->
     <template v-slot:cell()="data">
-        <span v-if="!['city', 'actions'].includes(data.field) && !data.value">&mdash;</span><!-- em dash on empty cells -->
+        <span v-if="!['city', 'actions'].includes(data.field) && data.value == ''">&mdash;</span><!-- em dash on empty cells -->
         <span v-else>{{data.value}}</span>
     </template>
 </b-table>
