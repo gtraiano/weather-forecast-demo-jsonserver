@@ -65,7 +65,7 @@
 						<div style="display: inline-block;">
 							<b-input-group>
 							    	<b-form-input
-							    		class="search"
+							    		style="height: inherit;"
 							    		:placeholder="$t('add city')"
 							    	/>
 							    	<template #append>
