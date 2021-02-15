@@ -185,6 +185,7 @@ export default {
           }
           catch(error) {
               console.log('Backend status is', this.backendStatus ? 'online' : 'offline'); 
+              console.error(error.message);
           }
       },
 
@@ -297,5 +298,9 @@ h1, h2 {
 
 a {
   color: #42b983;
+}
+
+.tooltip .arrow {
+  display: none !important;
 }
 </style>
