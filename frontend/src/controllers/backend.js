@@ -142,7 +142,10 @@ const updateCityLatLon = async (lat, lon) => {
 		return result.data;
 	}
 	catch(error) {
+		// on failure return original data
 		console.error(error.message);
+		//return (await axios.get(`${baseUrl}coords/${lat}/${lon}`)).data;
+		return null;
 	}
 }
 
@@ -190,16 +193,6 @@ const postCity = async data => {
 	}
 }
 
-const getDetailedForecastLatLon = async (lat, lon) => {
-	try {
-		const result = await axios.post(`${baseUrl}detailed/${lat}/${lon}`);
-		return result.data;
-	}
-	catch(error) {
-		console.error(error);
-	}
-}
-
 export { 
 	nominatimSearchName,
 	nominatimSearchLatLon,
@@ -212,7 +205,6 @@ export {
 	deleteCityLatLon,
 	postCityLatLon,
 	postCity,
-	getDetailedForecastLatLon,
 	pingActiveProtocol,
 	pingProtocol,
 	setActiveProtocol,

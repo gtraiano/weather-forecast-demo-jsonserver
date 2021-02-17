@@ -110,9 +110,13 @@ const actions = {
 		if(refetch) {
 			data.forEach(async city => {
 				// query backend to refresh city forecast and fetch data
-				const updated = await updateCityLatLon(city.coords.lat, city.coords.lon);
-				if(updated)
-					context.commit('updateCityForecastData', { lat: city.coords.lat, lon: city.coords.lon, data: transformDatabaseData(updated) });
+				try {
+					const updated = await updateCityLatLon(city.coords.lat, city.coords.lon);
+					if(updated) context.commit('updateCityForecastData', { lat: city.coords.lat, lon: city.coords.lon, data: transformDatabaseData(updated) });
+				}
+				catch(error) {
+					// nothing to do
+				}
 			});
 
 		}
