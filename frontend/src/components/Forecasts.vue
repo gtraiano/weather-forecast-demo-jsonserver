@@ -203,6 +203,7 @@
                     
                     <b-col
                         cols="1"
+                        class="text-nowrap"
                         :style="{textAlign: 'left'}"
                     >
                         <!-- plot timeline duration control -->
