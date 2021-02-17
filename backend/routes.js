@@ -32,31 +32,6 @@ const headers = {
 	locale: 'Locale' 		// Nominatim search for single locale
 };
 
-const removeId = (req, res, next) => {
-/* removes _id property when returning database documents as json */
-// https://lemnik.wordpress.com/2017/07/31/writing-express-middleware-to-modify-the-response/
-	res.format({
-		'application/json': () => {
-			const json_ = res.json;
-			res.json = function(data) {
-				if(data instanceof Array) {
-					data.forEach(item => {
-						if (Object(item).hasOwnProperty('_id'))
-							delete item._id;
-					});
-				}
-				else if(typeof data === 'object') {
-					if (Object(data).hasOwnProperty('_id'))
-						delete data._id;
-				}
-				json_.call(res, data);
-			}
-		}
-	});
-
-	next();
-};
-
 /*
 const unixToJsDatetime = (req, res, next) => {
 	res.format({
@@ -107,22 +82,6 @@ const refetchForecastData = async (lat, lon) => {
 			lon: Number.parseFloat(lon)
 		};
 	}
-	
-	/*if(!forecastData) { // something wrong with the api call
-		//throw new Error('OpenWeather API call wrong parameter');
-		console.log(`OpenWeather API call failed for lat: ${lat} lon: ${lon}`);
-		return {};
-	}
-
-	// get rid of coords from OpenWeather data
-	delete forecastData.lat;
-	delete forecastData.lon;
-
-	return {
-		lat: Number.parseFloat(lat),
-		lon: Number.parseFloat(lon),
-		...forecastData
-	};*/
 }
 
 const express = require('express');
@@ -130,7 +89,6 @@ const router = express.Router();
 
 // middleware
 router.use(express.json());
-router.use(removeId);
 //router.use(unixToJsDatetime);
 
 // routes
@@ -186,21 +144,6 @@ router.get('/coords/:lat/:lon/refetch', async (req, res, next) => {
 		const updated = await refetchForecastData(req.params.lat, req.params.lon);
 		forecastData = await forecastDb.updateCity(req.params.lat, req.params.lon, { ...cityData, ...updated });
 		forecastData ? res.json(forecastData) : res.status(404).end();
-	}
-	catch(error) {
-		res.status(404).end();
-		next(error);
-	}
-});
-
-router.get('detailed/:lat/:lon', async (req, res, next) => {
-	try {
-		let forecast = await forecastDb.findCity(req.params.lat, req.params.lon);
-		if(!forecast) {
-			res.status(404).end();
-			return;
-		}
-		res.json(detailed.hourly);
 	}
 	catch(error) {
 		res.status(404).end();
