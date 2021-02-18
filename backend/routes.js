@@ -76,11 +76,8 @@ const refetchForecastData = async (lat, lon) => {
 		};
 	}
 	catch (error) {
-		console.log(`OpenWeather API call failed for lat: ${lat} lon: ${lon}`);
-		return {
-			lat: Number.parseFloat(lat),
-			lon: Number.parseFloat(lon)
-		};
+		//console.log(`OpenWeather API call failed for lat: ${lat} lon: ${lon}`);
+		throw error;
 	}
 }
 
@@ -103,29 +100,34 @@ router.get('/coords/refetch', async (req, res, next) => {
 	let results = await forecastDb.allCities();
 	
 	results = await Promise.all(
-		results.map( async city => ({ ...city, ...await refetchForecastData(city.lat, city.lon) }) )
+		results.map( async city => {
+			try {
+				const updated = await refetchForecastData(city.lat, city.lon);
+				// add updated property to declare if forecast data updated or not
+				return { updated: true, ...city, ...updated }
+			}
+			catch(error) {
+				return { updated: false, ...city };
+			}
+		})
 	);
-	await forecastDb.updateCities(results);
+	await forecastDb.updateCities(results.filter(city => city.updated == true ));
 
-	res.json(results);
+	res.json(results.map(city => {
+		delete city.updated;
+		return city;
+	}));
 });
 
 router.get('/coords/:lat/:lon', async (req, res, next) => {
 /* get city by lat & lon */
 	try {
-		let forecastData = null;
 		let cityData = await forecastDb.findCity(req.params.lat, req.params.lon);
-
-		if(!cityData) {
-			res.status(404).end();
-			return;
-		}
-
-		forecastData = await forecastDb.findCity(req.params.lat, req.params.lon);
-		forecastData ? res.json(forecastData) : res.status(404).end();
+		res.json(cityData);
 	}
 	catch(error) {
-		res.status(404).end();
+		//res.status(404).end();
+		res.status(404).json({ error: error.message });
 		next(error);
 	}
 });
@@ -136,17 +138,12 @@ router.get('/coords/:lat/:lon/refetch', async (req, res, next) => {
 		let forecastData = null;
 		let cityData = await forecastDb.findCity(req.params.lat, req.params.lon);
 
-		if(!cityData) {
-			res.status(404).end();
-			return;
-		}
-
 		const updated = await refetchForecastData(req.params.lat, req.params.lon);
 		forecastData = await forecastDb.updateCity(req.params.lat, req.params.lon, { ...cityData, ...updated });
-		forecastData ? res.json(forecastData) : res.status(404).end();
+		res.json(forecastData);
 	}
 	catch(error) {
-		res.status(404).end();
+		res.status(404).json({ error: error.message });
 		next(error);
 	}
 });
@@ -160,9 +157,9 @@ router.put('/coords/:lat/:lon', async (req, res, next) => {
 
 		}
 		const result = await forecastDb.updateCity(req.params.lat, req.params.lon, body);
-		if(result) res.json(200).end();
-		//else if(result.matchedCount && !result.modifiedCount) res.status(304).end();
-		else res.status(404).end();
+		/*if(result) res.json(200).end();
+		else res.status(404).end();*/
+		res.status(200).json(result);
 	}
 	catch(error){
 		res.status(404).end()
@@ -202,11 +199,6 @@ router.post('/coords/:lat/:lon', async (req, res, next) => {
 		);
 
 		forecastData = await owService.fetchCity(req.params.lat, req.params.lon);
-		
-		if(!forecastData || !locationData) { // something wrong with the api calls parameters
-			res.status(400).end();
-			return;
-		}
 
 		// we want keep coords from location data only
 		delete forecastData.lat;
@@ -229,8 +221,13 @@ router.post('/coords/:lat/:lon', async (req, res, next) => {
 });
 
 router.delete('/coords/:lat/:lon', async (req, res, next) => {
-	const result = await forecastDb.removeCity(req.params.lat, req.params.lon);
-	res.status(result).end();
+	try {
+		await forecastDb.removeCity(req.params.lat, req.params.lon);
+		res.status(200).end();
+	}
+	catch(error) {
+		res.status(404).end();
+	}
 });
 
 router.get('/openweather/:lat/:lon', async (req, res, next) => {
@@ -240,6 +237,7 @@ router.get('/openweather/:lat/:lon', async (req, res, next) => {
 		res.json(data);
 	}
 	catch(error) {
+		res.status(404).json({ error: error.message });
 		next(error);
 	}
 });
@@ -251,6 +249,7 @@ router.get('/nominatim/:name', async (req, res, next) => {
 		res.json(data);
 	}
 	catch(error) {
+		res.status(404).json({ error: error.message });
 		next(error);
 	}
 })
@@ -262,6 +261,7 @@ router.get('/nominatim/:lat/:lon', async (req, res, next) => {
 		res.json(data);
 	}
 	catch(error) {
+		res.status(404).json({ error: error.message });
 		next(error);
 	}
 })

@@ -80,7 +80,7 @@ const nominatimSearchName = async (name, locale) => {
 		return results.data;
 	}
 	catch(error) {
-		console.error(error.message);
+		throw new Error(`${baseUrl}nominatim/${name} ${error.message}`);
 	}
 }
 
@@ -90,7 +90,7 @@ const nominatimSearchLatLon = async (lat, lon, locale) => {
 		return results.data;
 	}
 	catch(error) {
-		console.error(error.message);
+		throw new Error(`${baseUrl}nominatim/${lat}/${lon} ${error.message}`);
 	}
 }
 
@@ -101,7 +101,7 @@ const openWeatherSarch = async (lat, lon) => {
 		return result.data;
 	}
 	catch(error) {
-		console.error(error.message);
+		throw new Error(`${baseUrl}openweather/${lat}/${lon} ${error.message}`);
 	}
 }
 
@@ -112,7 +112,7 @@ const getAllCities = async () => {
 		return results.data;
 	}
 	catch(error) {
-		console.error(error.message);
+		throw new Error(`${baseUrl}coords ${error.message}`);
 	}
 }
 
@@ -122,7 +122,7 @@ const updateAllCities = async () => {
 		return results.data;
 	}
 	catch(error) {
-		console.error(error.message);
+		throw new Error(`${baseUrl}coords/refetch ${error.message}`)
 	}	
 }
 
@@ -132,7 +132,7 @@ const getCityLatLon = async (lat, lon) => {
 		return result.data;
 	}
 	catch(error) {
-		console.error(error.message);
+		throw new Error(`${baseUrl}coords/${lat}/${lon} ${error.message}`);
 	}
 }
 
@@ -142,10 +142,7 @@ const updateCityLatLon = async (lat, lon) => {
 		return result.data;
 	}
 	catch(error) {
-		// on failure return original data
-		console.error(error.message);
-		//return (await axios.get(`${baseUrl}coords/${lat}/${lon}`)).data;
-		return null;
+		throw new Error(`${baseUrl}coords/${lat}/${lon}/refetch ${error.message}`);
 	}
 }
 
@@ -157,7 +154,7 @@ const putCityLatLon = async (lat, lon, data) => {
 		return result.data;
 	}
 	catch(error) {
-		console.error(error.message);
+		throw new Error(`${baseUrl}coords ${error.message}`);
 	}
 }
 
@@ -168,7 +165,7 @@ const deleteCityLatLon = async (lat, lon, locale) => {
 		return result;
 	}
 	catch(error) {
-		console.error(error.message);
+		throw new Error(`${baseUrl}coords/${lat}/${lon} ${error.message}`);
 	}
 }
 
@@ -179,7 +176,7 @@ const postCityLatLon = async (lat, lon, locales) => {
 		return result.data;
 	}
 	catch(error) {
-		console.error(error.message);
+		throw new Error(`${baseUrl}coords/${lat}/${lon} ${error.message}`);
 	}
 }
 
@@ -189,7 +186,7 @@ const postCity = async data => {
 		return result.data;
 	}
 	catch(error) {
-		console.error(error.message);
+		throw new Error(`${baseUrl}coords ${error.message}`);
 	}
 }
 

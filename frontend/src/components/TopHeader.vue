@@ -179,17 +179,9 @@ export default {
 		BIconGear
 	},
 
-	data() {
-		return {
-			refreshing: false
-		}
-	},
-
 	methods: {
 		async refreshForecastData() {
-			this.refreshing = true;
 			await this.$store.dispatch('allCityData/setAllCityDataAsync', true);
-			this.refreshing = false;
 		},
 
 		async searchCity() {
@@ -200,7 +192,8 @@ export default {
 
 	computed: {
 		...mapGetters({
-			preferences: 'preferences/getPreferences'
+			preferences: 'preferences/getPreferences',
+			refreshing: 'allCityData/getFetching'
 		})
 	}
 }

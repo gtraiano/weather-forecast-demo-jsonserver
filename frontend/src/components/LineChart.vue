@@ -94,7 +94,7 @@ export default {
                     display: this.chartData.title ? true : false,
                     //text: this.chartData.title ? this.chartData.title : null,
                     fontSize: 14,
-                    padding: 2
+                    padding: 6
                 },
                 legend: {
                     display: false
@@ -155,6 +155,7 @@ export default {
         },
 
         breakText: (text, limit, fontSize) => {
+            if(!text) return [];
             let out = [];
             let acc = '';
             let words = text.split(' ');

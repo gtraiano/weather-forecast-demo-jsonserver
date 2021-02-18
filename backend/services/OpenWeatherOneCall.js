@@ -21,8 +21,7 @@ const fetchQuery = async (query, retries = 2) => {
 		console.log(`Retrying ${query}`)
 		if (retries === 1) {
 			console.log(`Failed ${query}`);
-			return new Promise((resolve, reject) => { reject(`Failed ${query}`) });
-			//throw error;
+			throw new Error(`Failed ${query}`);
 		}
 		
 		setTimeout(() => {}, 200);
@@ -34,7 +33,6 @@ const fetchQuery = async (query, retries = 2) => {
 const fetchBatch = async batch => {
 	let data = [];
 
-	//try {
 	data = batch.map(async (entry, index) => { // entry = { id, name, lat, lon }
 		let query = prepareQuery(entry.lat, entry.lon)
 		let response;
@@ -53,9 +51,6 @@ const fetchBatch = async batch => {
 			});
 		}
 	});
-	//catch (error) {
-		//throw error;
-	//}
 
 	return Promise.all(data);
 }
@@ -67,9 +62,7 @@ const fetchCity = async (lat, lon) => {
 	}
 
 	catch (error) {
-		//console.log(error.message);
-		return {};
-		//throw error;
+		throw error;
 	}
 }
 

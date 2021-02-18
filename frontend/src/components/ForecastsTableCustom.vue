@@ -88,12 +88,12 @@
       	<a
             class="ml-1 mr-1"
       		  href=""
-      		  @click.prevent="updateCityForecast(data.item['city'])"
+      		  @click.prevent="singleAction = data.index; updateCityForecast(data.item['city']);"
       		  style="color: unset"
             v-b-tooltip.hover.bottom.ds500
             :title="$t('refresh forecast data')"
       	>
-      		  <b-icon-arrow-clockwise/>
+      		  <b-icon-arrow-clockwise :animation="$store.getters['allCityData/getFetching'] && singleAction == data.index ? 'spin' : ''" />
       	</a>
         <!-- remove city icon -->
       	<a
@@ -172,7 +172,8 @@ export default {
             rows: [], // local copy of table items
             sortFields: {}, // sortable fields order (true: asc, false: desc, null: none)
             filteredRows: [],
-            sortSum: 0
+            sortSum: 0,
+            singleAction: -1
         }
     },
 
