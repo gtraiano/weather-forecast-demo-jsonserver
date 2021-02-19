@@ -14,16 +14,19 @@
 		toggleable="md"
 		type="dark"
 		variant="dark"
+		style="height: 100%; margin: 0; padding-top: 0; padding-bottom: 0;"
 	>
 		<!--b-navbar-brand>
 			<img src="../assets/logo_rect.png" class="logo">
 		</b-navbar-brand-->
 		<b-navbar-toggle
 			target="nav-collapse"
+			style="height: 100%;"
 		/>
 			<b-collapse
 				id="nav-collapse"
 				is-nav
+				style="height: 100%;"
 			>
 				<!-- Right aligned nav items -->
 				<b-navbar-nav
@@ -206,6 +209,7 @@ export default {
     position: sticky;
     top: 0;
     z-index: 2147483647;
+    height: 5vh;
 }
 
 .logo {
@@ -229,7 +233,7 @@ export default {
 }
 
 >>> .dropdown-menu {
-	top: 50px;
+	top: 4.75vh;
 }
 
 *:focus {
