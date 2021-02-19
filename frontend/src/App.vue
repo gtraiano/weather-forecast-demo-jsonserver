@@ -166,13 +166,7 @@ export default {
 
   methods: {
       async checkBackendStatus() {
-          try {
-              const res = await pingActiveProtocol();
-              this.backendStatus = res ? res.status == 200 : false;
-          }
-          catch(error) {
-              //this.backendStatus = 0;
-          }
+          this.backendStatus = await pingActiveProtocol() !== 404;
       },
 
       async initializateApp() {
@@ -180,8 +174,10 @@ export default {
               console.log('Checking backend status');
               await this.$store.dispatch('preferences/initializeAvailableProtocols');
               await this.checkBackendStatus();
-              console.log('Loading forecast data');
-              await this.$store.dispatch('allCityData/setAllCityDataAsync');
+              if(this.backendStatus) {
+                console.log('Loading forecast data');
+                await this.$store.dispatch('allCityData/setAllCityDataAsync');
+              }
           }
           catch(error) {
               console.log('Backend status is', this.backendStatus ? 'online' : 'offline'); 
@@ -194,8 +190,6 @@ export default {
       },
 
       async searchCity() {
-          //console.log(event.target.value);
-          //console.log(document.getElementById('search-input').value);
           this.$store.dispatch('search/setSearchTerm', document.getElementById('search-input').value);
           await this.$store.dispatch('search/setShowResults', true);
           await this.$store.dispatch('search/searchCity');
@@ -214,12 +208,8 @@ export default {
 
   watch: {
       async backendStatus() {
-          try {
-              await this.checkBackendStatus();
-          }
-          catch(error) {
-              console.log('Backend status is', this.backendStatus ? 'online' : 'offline'); 
-          }
+          await this.checkBackendStatus();
+          console.log('Backend status is', this.backendStatus ? 'online' : 'offline'); 
           this.backendStatus
               ? (clearInterval(this.pingHandle), await this.initializateApp())
               : this.pingHandle = setInterval(this.checkBackendStatus, 3000); // reset interval if necessary

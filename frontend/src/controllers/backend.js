@@ -7,49 +7,48 @@ let backendEndpoint = process.env.BACKEND_API_ENDPOINT;
 let baseUrl = `${backendProtocol}://${backendDomain}:${backendPort}${backendEndpoint}`;
 
 const pingTimeout = 3000;
-// ping active protocol
+// ping active protocol and return status code
 const pingActiveProtocol = async () => {
 	try {
-		return await axios.get(
+		const res = await axios.get(
 			`${baseUrl}ping`,
 			{
 				timeout: pingTimeout,
 				headers: { 'Access-Control-Allow-Origin': true }
 			}
 		)
+
+		return res.status;
 	}
 	catch(error) {
-		console.log(error.message);
+		return 404;
 	}
 }
 
-// ping specific protocol
+// ping specific protocol and return { protocol, url, status }
 const pingProtocol = async protocol => {
+	let res;
+	let prot = protocol.toLowerCase();
+	let url = `${prot}://${process.env.BACKEND_DOMAIN}:${prot === 'https' ? process.env.EXPRESS_SERVER_HTTPS_PORT : process.env.EXPRESS_SERVER_HTTP_PORT}${process.env.BACKEND_API_ENDPOINT}ping`;
+	let status;
 	try {
-		if(protocol.toLowerCase() === 'http') {
-			return await axios.get(
-				`http://${process.env.BACKEND_DOMAIN}:${process.env.EXPRESS_SERVER_HTTP_PORT}${process.env.BACKEND_API_ENDPOINT}ping`,
-				{
-					timeout: pingTimeout,
-					headers: { 'Access-Control-Allow-Origin': true } 
-				}
-			);
-		}
-		else if(protocol.toLowerCase() === 'https') {
-			return await axios.get(
-				`https://${process.env.BACKEND_DOMAIN}:${process.env.EXPRESS_SERVER_HTTPS_PORT}${process.env.BACKEND_API_ENDPOINT}ping`,
-				{
-					timeout: pingTimeout,
-					headers: { 'Access-Control-Allow-Origin': true } 
-				}
-			);
-		}
+		res = await axios.get(
+			url,
+			{
+				timeout: pingTimeout,
+				headers: { 'Access-Control-Allow-Origin': true } 
+			}
+		);
+		status = res.status;
 	}
 	catch(error) {
-		console.error(error.message);
-		return null;
+		status = 404;
+	}
+	finally {
+		return { protocol: prot, url: url.match(/(.*:\d+)/g)[0], status };
 	}
 }
+
 // get and set backend parameters
 const setActiveProtocol = value => {
 	backendProtocol = value;
@@ -105,6 +104,7 @@ const openWeatherSarch = async (lat, lon) => {
 	}
 }
 
+// database calls
 // database get city
 const getAllCities = async () => {
 	try {

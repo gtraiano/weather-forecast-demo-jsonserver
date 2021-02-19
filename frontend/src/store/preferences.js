@@ -33,20 +33,7 @@ const actions = {
 
 	initializeAvailableProtocols: async context => {
 		const protocols = await Promise.all(
-			['http', 'https'].map(async protocol => {
-				const ping = await pingProtocol(protocol);
-				let url;
-				let status;
-				if(ping && ping.status === 200) {
-					url = ping.request.responseURL.match(/(.*:\d+)/g)[0]; // extract url of backend server
-					status = true;
-				}
-				else {
-					status = false;
-					url = '';
-				}
-				return { protocol, url, status };
-			})
+			['http', 'https'].map(async protocol => await pingProtocol(protocol))
 		);
 		context.commit('setPreference', { preference: 'backend.availableProtocols', value: protocols });
 		context.commit('setPreference', { preference: 'backend.activeProtocol', value: getActiveProtocol() });
