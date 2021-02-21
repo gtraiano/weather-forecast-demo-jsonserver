@@ -120,20 +120,20 @@
 			        		right
 			        		lazy
 			        		@show="$store.dispatch('preferences/initializeAvailableProtocols')"
-			        		v-b-tooltip.hover.bottom.ds500
-							:title="$t('preferences')"
+			        		v-b-tooltip.hover.bottom.ds500.title="`${$t('preferences')}`"
 			        	>
 			        		<template #button-content>
         						<b-icon-gear/>
       						</template>
       						<!-- backend protocol select -->
-      						<b-dropdown-form style="min-width: max-content; max-width: max-content;">
+      						<b-dropdown-form style="width: 20vw;">
       							<b-form-group
       								:label="$t('backend protocol')"
       								class="mb-2"
+      								title=""
       							>
 							         <b-form-select
-							         	:disabled="preferences.backend.availableProtocols.filter(p => p.status !== 404).length === 1"
+							         	:disabled="preferences.backend.availableProtocols.filter(p => p.status !== 404).length <= 1"
 								        :options="preferences.backend.availableProtocols.filter(p => p.status !== 404).map(p => ({ text: p.protocol.toUpperCase(), value: p.protocol }) )"
 								        :value="preferences.backend.activeProtocol"
 								        @change="$event => $store.dispatch('preferences/setActiveProtocol', $event)"
@@ -142,22 +142,54 @@
 						        </b-form-group>
 						        
 						        <!-- detailed forecast pagination/scrollbar select -->
-						        <b-form-group :label="$t('detailed forecast style')">
-						          <b-form-select
-							          :options="['paginated', 'scrollbar'].map(o => ({ text: $t(o), value: o}))"
-							          :value="preferences.frontend.detailedForecastStyle"
-							          @change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.detailedForecastStyle', value: $event })"
-							      />
+						        <b-form-group
+						        	:label="$t('detailed forecast style')"
+						        	title=""
+						        >
+						          	<b-form-select
+							          	:options="['paginated', 'scrollbar'].map(o => ({ text: $t(o), value: o}))"
+							          	:value="preferences.frontend.detailedForecastStyle"
+							          	@change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.detailedForecastStyle', value: $event })"
+							      	/>
 						        </b-form-group>
 						        
 						        <!-- theme -->
-						        <b-form-group :label="$t('theme')">
-						          <b-form-select
-							          :options="preferences.frontend.availableThemes"
-							          :value="preferences.frontend.activeTheme"
-							          @change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.activeTheme', value: $event })"
-							      />
+						        <b-form-group
+						        	:label="$t('theme')"
+						        	title=""
+						        >
+						          	<b-form-select
+							          	:options="preferences.frontend.availableThemes"
+							          	:value="preferences.frontend.activeTheme"
+							          	@change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.activeTheme', value: $event })"
+							      	/>
 						        </b-form-group>
+
+						        <!-- auto refetch -->
+						        <b-form-checkbox
+						        	:checked="preferences.frontend.autoRefetch"
+						        	@change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.autoRefetch', value: $event })"
+						        >
+						    		{{$t('auto refresh')}}
+						    	</b-form-checkbox>
+
+						    	<!-- auto refetch period -->
+						    	<b-form-group
+						    		:style="{ opacity: preferences.frontend.autoRefetch ? 1 : 0.5 }"
+						    		title=""
+						    	>
+						    		{{$t('auto refresh period')}}
+							    	<b-form-input
+							    		style="max-width: 50%; display: inline;"
+							    		type="number"
+							    		:value="preferences.frontend.autoRefetchPeriod"
+							    		min="0"
+							    		@change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.autoRefetchPeriod', value: $event })"
+							    		:disabled="!preferences.frontend.autoRefetch"
+							    	/>
+							    	{{$t('hours')}}
+						    	</b-form-group>
+
       						</b-dropdown-form>
 			        	</b-dropdown>
 			        </div>

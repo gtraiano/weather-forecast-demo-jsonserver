@@ -102,8 +102,9 @@ const actions = {
 		if(typeof forceRefetch !== 'undefined') {
 			refetch = forceRefetch;
 		}
-		else if(upToDate < (Date.now() + 12*3600000)) { // if data older than 12 hours
-			refetch = true;
+		else {
+			refetch = store.getters['preferences/getPreferences'].frontend.autoRefetch &&
+					  upToDate < (Date.now() + store.getters['preferences/getPreferences'].frontend.autoRefetchPeriod*3600000);
 		}
 
 		context.commit('setFetching', true);

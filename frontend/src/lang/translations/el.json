@@ -14,8 +14,10 @@
   "backend protocol": "Πρωτόκολλο Backend",
   "detailed forecast style": "Στυλ Λεπτομερούς Πρόγνωσης",
   "scrollbar": "μπάρα κύλισης",
-  "paginated": "σελιδοποημένο",
+  "paginated": "σελιδοποιημένο",
   "theme": "Θέμα",
+  "auto refresh":"Αυτόματη ανανέωση μετεορολογικών δεδομένων",
+  "auto refresh period": "Παλαιότερα από",
   "or check other": "ή επιλέξτε άλλες",
   "available options": "διαθέσιμες επιλογές",
 

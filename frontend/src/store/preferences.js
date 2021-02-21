@@ -15,7 +15,9 @@ const state = () => ({
 	frontend: {
 		detailedForecastStyle: JSON.parse(window.localStorage.getItem('frontend.detailedForecastStyle')) || 'scrollbar',
 		availableThemes: ['regular', 'dark', 'terminal'],
-		activeTheme: JSON.parse(window.localStorage.getItem('frontend.activeTheme')) || 'regular'
+		activeTheme: JSON.parse(window.localStorage.getItem('frontend.activeTheme')) || 'regular',
+		autoRefetch: JSON.parse(window.localStorage.getItem('frontend.autoRefetch')) || false,
+		autoRefetchPeriod: JSON.parse(window.localStorage.getItem('frontend.autoRefetchPeriod')) || 12 // hours
 	}
 });
 
@@ -28,7 +30,7 @@ const getters = {
 const actions = {
 	setPreference: (context, { preference, value }) => {
 		context.commit('setPreference', { preference, value });
-		window.localStorage.setItem(preference, JSON.stringify(value));
+		window.localStorage.setItem(preference, JSON.stringify(/-?\d+\.?\d+/.test(value.toString()) ? Number.parseFloat(value) : value));
 	},
 
 	initializeAvailableProtocols: async context => {
@@ -58,10 +60,13 @@ const mutations = {
 		if(value instanceof Array) { // assume type of array elements is ok
 			state[path[0]][path[1]] = [...value];
 		}
-		else if(/^-?\d+?.\d+$/.test(value.toString())) { // numeric
-			state[path[0]][path[1]] = Number.parseInt(value);
+		else if(/-?\d+\.?\d+/.test(value.toString())) { // numeric
+			state[path[0]][path[1]] = Number.parseFloat(value);
 		}
 		else if(/^[a-zA-Z]+$/.test(value.toString())) {
+			state[path[0]][path[1]] = value;
+		}
+		else {
 			state[path[0]][path[1]] = value;
 		}
 	}

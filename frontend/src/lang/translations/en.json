@@ -16,6 +16,8 @@
   "scrollbar": "scrollbar",
   "paginated": "paginated",
   "theme": "Theme",
+  "auto refresh":"Automatically refresh old forecast data",
+  "auto refresh period": "Older than",
   "or check other": "or check other",
   "available options": "available options",
 
