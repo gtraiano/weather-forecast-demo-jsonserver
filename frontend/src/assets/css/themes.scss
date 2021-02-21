@@ -43,6 +43,10 @@
     	background-color: var(--gray);
     }
 
+    * > .dropdown-item {
+        color: var(--light);
+    }
+
     .dropdown-item:hover {
     	background-color: var(--dark);
     	color: var(--light);
@@ -175,6 +179,11 @@
         input {
             color: black;
         }
+    }
+
+    .form-control:disabled {
+        opacity: 0.8;
+        color: gray;
     }
 }
 
