@@ -17,7 +17,9 @@
   "paginated": "paginated",
   "theme": "Theme",
   "auto refresh":"Automatically refresh old forecast data",
-  "auto refresh period": "Older than",
+  "auto refresh period": "If older than",
+  "check period": "Check for fresh forecast data every",
+  "mins": "minutes",
   "or check other": "or check other",
   "available options": "available options",
 

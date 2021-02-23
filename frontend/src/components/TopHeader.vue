@@ -14,7 +14,12 @@
 		toggleable="md"
 		type="dark"
 		variant="dark"
-		style="height: 100%; margin: 0; padding-top: 0; padding-bottom: 0;"
+		style="
+			height: 100%;
+			margin: 0;
+			padding-top: 0;
+			padding-bottom: 0;
+		"
 	>
 		<!--b-navbar-brand>
 			<img src="../assets/logo_rect.png" class="logo">
@@ -180,14 +185,44 @@
 						    	>
 						    		{{$t('auto refresh period')}}
 							    	<b-form-input
-							    		style="max-width: 50%; display: inline;"
+							    		style="
+							    			min-width: 15%;
+							    			max-width: 20%;
+							    			display: inline;
+							    			padding: 0% 1% 0% 1%;
+							    			text-align: center;
+							    		"
 							    		type="number"
-							    		:value="preferences.frontend.autoRefetchPeriod"
-							    		min="0"
-							    		@change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.autoRefetchPeriod', value: $event })"
+							    		:value="preferences.frontend.autoRefetchOlderThan"
+							    		min="1"
+							    		max="72"
+							    		@change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.autoRefetchOlderThan', value: $event })"
 							    		:disabled="!preferences.frontend.autoRefetch"
 							    	/>
 							    	{{$t('hours')}}
+						    	</b-form-group>
+
+						    	<!-- check fresh data period -->
+						    	<b-form-group
+						    		:style="{ opacity: preferences.frontend.autoRefetch ? 1 : 0.5 }"
+						    		title=""
+						    	>
+						    		{{$t('check period')}}
+							    	<b-form-input
+							    		style="
+							    			min-width: 15%;
+							    			max-width: 20%;
+							    			display: inline;
+							    			padding: 0% 1% 0% 1%;
+							    			text-align: center;
+							    		"
+							    		type="number"
+							    		:value="preferences.frontend.checkUpToDatePeriod/60000"
+							    		min="1"
+							    		@change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.checkUpToDatePeriod', value: $event*60000 })"
+							    		:disabled="!preferences.frontend.autoRefetch"
+							    	/>
+							    	{{$t('mins')}}
 						    	</b-form-group>
 
       						</b-dropdown-form>

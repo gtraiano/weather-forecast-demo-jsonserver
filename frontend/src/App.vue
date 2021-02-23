@@ -158,9 +158,13 @@ export default {
 
   data() {
       return {
-          backendStatus: null,
-          pingHandle: null,
-          showAvailable: false
+          backendStatus: null,          // backend is available
+          pingHandle: null,             // backend ping setInterval handle
+          showAvailable: false,         // show available backend options when backend is unavailable
+          upToDate: null,               // forecast data is up to date (or needs to be refetched from openweather)
+          upToDateHandle: null,         // check up to date setInterval handle
+          upToDateLastChecked: null,    // last checked data up to date
+          //upToDateCheckInterval: 60000  // check every 60 seconds
       }
   },
 
@@ -169,14 +173,40 @@ export default {
           this.backendStatus = await pingActiveProtocol() !== 404;
       },
 
+      checkUpToDate() {
+      /* checks forecast data is up to date */
+          let upToDate = JSON.parse(window.localStorage.getItem('upToDate')) || 0;
+          // if option to refresh outdated forecast data is disabled, return always true
+          this.upToDate = !this.autoRefetch ? true : !(upToDate < (Date.now() + this.preferences.frontend.autoRefetchOlderThan*3600000));
+          this.upToDateLastChecked = Date.now();
+      },
+
+      setCheckUpToDateInterval(interval) {
+      /* sets interval for checkUpToDate(), use 0 to clear interval */
+          this.upToDateHandle = interval
+              ? setInterval(this.checkUpToDate, interval)
+              : clearInterval(this.upToDateHandle);
+      },
+
       async initializateApp() {
+      /* app initialization */
           try {
+              // check backend status 
               console.log('Checking backend status');
               await this.$store.dispatch('preferences/initializeAvailableProtocols');
               await this.checkBackendStatus();
               if(this.backendStatus) {
-                console.log('Loading forecast data');
-                await this.$store.dispatch('allCityData/setAllCityDataAsync');
+                  console.log('Loading forecast data');
+                  if(this.autoRefetch) {
+                      // check if forecast data is needs to be refreshed
+                      this.checkUpToDate();
+                      await this.$store.dispatch('allCityData/setAllCityDataAsync', !this.upToDate);
+                      // enable check up to date interval
+                      this.setCheckUpToDateInterval(this.upToDateCheckInterval);
+                  }
+                  else {
+                      await this.$store.dispatch('allCityData/setAllCityDataAsync', false);
+                  }
               }
           }
           catch(error) {
@@ -202,7 +232,17 @@ export default {
       }),
 
       theme() {
+      // active app theme
           return this.preferences.frontend.activeTheme;
+      },
+
+      autoRefetch() {
+      // automatic refetch
+          return this.preferences.frontend.autoRefetch;
+      },
+
+      upToDateCheckInterval() {
+          return this.preferences.frontend.checkUpToDatePeriod;
       }
   },
 
@@ -217,6 +257,31 @@ export default {
 
       theme() {
           document.documentElement.setAttribute('theme', this.theme);
+      },
+
+      autoRefetch() {
+          if(!this.autoRefetch) {
+              this.setCheckUpToDateInterval(0);
+          }
+          else {
+              this.checkUpToDate();
+              this.setCheckUpToDateInterval(this.upToDateCheckInterval);
+          }
+          console.log(this.autoRefetch ? 'Enabled' : 'Disabled', 'automatic refetch');
+      },
+
+      async upToDateLastChecked() {
+          console.log(`Forecast data is ${!this.upToDate ? 'not' : ''} up to date on ${new Date(this.upToDateLastChecked)}`);
+          if(!this.upToDate) {
+              // refresh forecast data
+              console.log('Forecast data is outdated, fetching fresh data');
+              await this.$store.dispatch('allCityData/setAllCityDataAsync', !this.upToDate);
+          }
+      },
+
+      upToDateCheckInterval() {
+          console.log('Set up to date check interval to', this.upToDateCheckInterval);
+          this.setCheckUpToDateInterval(this.upToDateCheckInterval);
       }
   },
 

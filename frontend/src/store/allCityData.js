@@ -77,15 +77,15 @@ const transformDatabaseData = entry => {
 }
 
 const state = () => ({
-	allCityData: [], // forecast data for all cities
-	lastChangedOn: 0, // datetime of last data fetch or data change
-	fetching: false // data fetching is happenning
+	allCityData: [], 	// forecast data for all cities
+	lastChangedOn: 0, 	// datetime of last data fetch or data change
+	fetching: false 	// data fetching is taking place
 })
 
 const getters = {
 	getAllCityData: state => state.allCityData,
 	getLastChangedOn: state => state.lastChangedOn,
-	getCitiesCoords: state => new Map(state.allCityData.map(city => [`${city.coords.lat},${city.coords.lon}`, true])),
+	getCitiesCoords: state => new Map(state.allCityData.map(city => [`${city.coords.lat},${city.coords.lon}`, true])), // map of cities coordinates
 	getFetching: state => state.fetching
 }
 
@@ -95,18 +95,8 @@ const actions = {
 		context.commit('setLastChangedOn', Date.now());
 	},
 
-	setAllCityDataAsync: async (context, forceRefetch) => {
-		let refetch = null;
-		let upToDate = JSON.parse(window.localStorage.getItem('upToDate')) || 0;
-		
-		if(typeof forceRefetch !== 'undefined') {
-			refetch = forceRefetch;
-		}
-		else {
-			refetch = store.getters['preferences/getPreferences'].frontend.autoRefetch &&
-					  upToDate < (Date.now() + store.getters['preferences/getPreferences'].frontend.autoRefetchPeriod*3600000);
-		}
-
+	setAllCityDataAsync: async (context, refetch) => {
+	// fetch and transform forecast data from backend
 		context.commit('setFetching', true);
 
 		let data = await getAllCities();
@@ -124,15 +114,12 @@ const actions = {
 					console.error(error.message);
 				}
 			});
-
 		}
 		
 		context.commit('setFetching', false);
 		console.log('Fetched forecast data from', refetch ? 'OpenWeather' : 'backend');
-		
 		context.commit('setAllCityData', data); // save api data to state
 		window.localStorage.setItem('upToDate', JSON.stringify( Math.min( ...data.map(d => d.forecast.hourlyDt[47]) ) ));
-
 		context.commit('setLastChangedOn', Date.now());
 	},
 
@@ -145,6 +132,7 @@ const actions = {
 	},
 
 	appendCityAsync: async (context, city) => {
+	// add and fetch forecast data for new city
 		try {
 			let newCity = await postCityLatLon(city.lat, city.lon, store.i18n.availableLocales);
 			context.commit('appendCity', transformDatabaseData(newCity));
@@ -154,7 +142,6 @@ const actions = {
 		catch(error){
 			console.error(error.message);
 		}
-		
 	},
 
 	updateCityForecastDataAsync: async (context, city) => {
