@@ -292,8 +292,6 @@ export default {
       },
 
       async upToDateLastChecked(newValue, oldValue) {
-          if(newValue - oldValue < 3000) // sometimes setInterval misfires
-              return;
           console.log(`Forecast data is ${!this.upToDate ? 'not' : ''} up to date on ${new Date(this.upToDateLastChecked)}`);
           if(!this.upToDate) {
               // refresh forecast data
