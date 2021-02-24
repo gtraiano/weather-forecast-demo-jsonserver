@@ -21,10 +21,20 @@
             :z-index="(Number.MAX_VALUE/8).toLocaleString('fullwide', { useGrouping: false })"
         >
             <template #overlay>
-                <div style="min-width: 20vw; max-width: 30vw;">
+                <div
+                    style="
+                        min-width: 20vw;
+                        max-width: 30vw;
+                    "
+                >
                     <h3> {{ $t('search for')}} <i>"{{ $store.getters['search/getSearchTerm'] }}"</i></h3>
 
-                    <div style="margin-bottom: 1vh; height: inherit;">
+                    <div
+                        style="
+                            margin-bottom: 1vh;
+                            height: inherit;
+                        "
+                    >
                         <b-input-group>
                             <b-form-input
                                 id="search-input"
@@ -33,7 +43,10 @@
                                 :placeholder="$t('add city')"
                                 trim
                                 @keydown.enter="searchCity()"
-                                style="background-color: #fff; height: inherit;"
+                                style="
+                                    background-color: #fff;
+                                    height: inherit;
+                                "
                             />
                             <template #append>
                                 <b-button
@@ -80,8 +93,12 @@
         </b-overlay>
     </div>
     
-    <!-- when backend is unaivalable -->
-    <div id="app" tabindex="0" v-else>
+    <!-- when backend is unavailable -->
+    <div
+        id="app"
+        tabindex="0"
+        v-else
+    >
         <!-- message -->
         <h2 style="margin-top: 50vh">{{$t('await backend')}}</h2>
         <p>
@@ -94,7 +111,7 @@
         <p v-if="$store.getters['preferences/getPreferences'].backend.availableProtocols.length">
             {{$t('or check other')}} <a href="" @click.prevent = "showAvailable = !showAvailable">{{$t('available options')}}</a>
         </p>
-        <!-- alternatives -->
+        <!-- backend url alternatives -->
         <div v-if="showAvailable">
             <h6>Available URLs</h6>
             <div>
@@ -162,9 +179,8 @@ export default {
           pingHandle: null,             // backend ping setInterval handle
           showAvailable: false,         // show available backend options when backend is unavailable
           upToDate: null,               // forecast data is up to date (or needs to be refetched from openweather)
-          upToDateHandle: null,         // check up to date setInterval handle
-          upToDateLastChecked: null,    // last checked data up to date
-          //upToDateCheckInterval: 60000  // check every 60 seconds
+          upToDateHandle: null,         // check forecast data up to date setInterval handle
+          upToDateLastChecked: null     // forecast data up to date last checked
       }
   },
 
@@ -177,15 +193,19 @@ export default {
       /* checks forecast data is up to date */
           let upToDate = JSON.parse(window.localStorage.getItem('upToDate')) || 0;
           // if option to refresh outdated forecast data is disabled, return always true
-          this.upToDate = !this.autoRefetch ? true : !(upToDate < (Date.now() + this.preferences.frontend.autoRefetchOlderThan*3600000));
+          this.upToDate = !this.autoRefetch
+              ? true
+              : !(upToDate < (Date.now() + this.$store.getters['preferences/getPreference']('frontend.autoRefetchOlderThan')*3600000));
           this.upToDateLastChecked = Date.now();
       },
 
       setCheckUpToDateInterval(interval) {
       /* sets interval for checkUpToDate(), use 0 to clear interval */
-          this.upToDateHandle = interval
-              ? setInterval(this.checkUpToDate, interval)
-              : clearInterval(this.upToDateHandle);
+          clearInterval(this.upToDateHandle);
+          this.upToDateHandle = 0;
+          if(interval !== 0) {
+              this.upToDateHandle = setInterval(this.checkUpToDate, interval);
+          }
       },
 
       async initializateApp() {
@@ -227,32 +247,33 @@ export default {
   },
 
   computed: {
-      ...mapGetters({
-          preferences: 'preferences/getPreferences'
-      }),
-
       theme() {
       // active app theme
-          return this.preferences.frontend.activeTheme;
+          return this.$store.getters['preferences/getPreference']('frontend.activeTheme');
       },
 
       autoRefetch() {
       // automatic refetch
-          return this.preferences.frontend.autoRefetch;
+          return this.$store.getters['preferences/getPreference']('frontend.autoRefetch');
       },
 
       upToDateCheckInterval() {
-          return this.preferences.frontend.checkUpToDatePeriod;
+          return this.$store.getters['preferences/getPreference']('frontend.checkUpToDatePeriod');
       }
   },
 
   watch: {
       async backendStatus() {
           await this.checkBackendStatus();
-          console.log('Backend status is', this.backendStatus ? 'online' : 'offline'); 
-          this.backendStatus
-              ? (clearInterval(this.pingHandle), await this.initializateApp())
-              : this.pingHandle = setInterval(this.checkBackendStatus, 3000); // reset interval if necessary
+          console.log('Backend status is', this.backendStatus ? 'online' : 'offline');
+          if(this.backendStatus) {
+              clearInterval(this.pingHandle);
+              this.pingHandle = 0;
+              await this.initializateApp();
+          }
+          else {
+              this.pingHandle = setInterval(this.checkBackendStatus, 3000); // reset interval if necessary
+          }
       },
 
       theme() {
@@ -270,7 +291,9 @@ export default {
           console.log(this.autoRefetch ? 'Enabled' : 'Disabled', 'automatic refetch');
       },
 
-      async upToDateLastChecked() {
+      async upToDateLastChecked(newValue, oldValue) {
+          if(newValue - oldValue < 3000) // sometimes setInterval misfires
+              return;
           console.log(`Forecast data is ${!this.upToDate ? 'not' : ''} up to date on ${new Date(this.upToDateLastChecked)}`);
           if(!this.upToDate) {
               // refresh forecast data
@@ -357,5 +380,9 @@ a {
 
 .tooltip .arrow {
   display: none !important;
+}
+
+#app .container-fluid {
+    margin-top: 2%;
 }
 </style>
