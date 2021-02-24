@@ -17,8 +17,9 @@
 		style="
 			height: 100%;
 			margin: 0;
-			padding-top: 0;
-			padding-bottom: 0;
+			padding-top: auto;
+			padding-bottom: auto;
+			position: relative;
 		"
 	>
 		<!--b-navbar-brand>
@@ -271,12 +272,13 @@ export default {
 
 <style scoped>
 .top-header {
-    background-color: gray;
-    margin-bottom: 1%;
+    background-color: var(--dark);
+    /*margin-bottom: 1%;*/
     position: sticky;
     top: 0;
     z-index: 2147483647;
-    height: 5vh;
+    min-height: 4vh;
+    max-height: 4vh;
 }
 
 .logo {
