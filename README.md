@@ -4,7 +4,10 @@
 ## Information
 Frontend written in Vue.js, backend in Node + Express.
 
+Requires an OpenWeather API key to be able to fetch forecast data (registration at https://home.openweathermap.org/users/sign_up).
+
 The application utilizes
+
  - Nominatim and Openstreetmap API for location data
  - OpenWeather API for forecast data
  - Vue Leaflet to render the map
@@ -81,6 +84,8 @@ If not provided, Webpack Dev Server will generate its own.
 
 ## License - Proprietary
 Copyright - Spiros Dimopoulos <sdimopoulos@irisweb.gr>
+
 Modification and additions - Georgios Traianos <gtraiano@gmail.com>
+
 It is provided as is without any guarantee for demonstration purposes solely.
 Not to be redistributed in any form, copied or sold.
