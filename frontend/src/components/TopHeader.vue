@@ -172,12 +172,14 @@
 						        </b-form-group>
 
 						        <!-- auto refetch -->
-						        <b-form-checkbox
-						        	:checked="preferences.frontend.autoRefetch"
-						        	@change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.autoRefetch', value: $event })"
-						        >
-						    		{{$t('auto refresh')}}
-						    	</b-form-checkbox>
+						        <b-form-group>
+							        <b-form-checkbox
+							        	:checked="preferences.frontend.autoRefetch"
+							        	@change="$event => $store.dispatch('preferences/setPreference', { preference: 'frontend.autoRefetch', value: $event })"
+							        >
+							    		{{$t('auto refresh')}}
+							    	</b-form-checkbox>
+						    	</b-form-group>
 
 						    	<!-- auto refetch period -->
 						    	<b-form-group
