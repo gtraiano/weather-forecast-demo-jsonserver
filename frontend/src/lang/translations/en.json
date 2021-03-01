@@ -22,6 +22,9 @@
   "mins": "minutes",
   "or check other": "or check other",
   "available options": "available options",
+  "api key not set": "You have not set an OpenWeather API key in your .env file!",
+  "set api key": "Set API key manually",
+  "set api key warn": "The API key will be temporarily set and will be lost when the backend is reset.<br>Remember to save the API key permanently in your .env file!",
 
   "add": "Add",
   "already added": "already added",

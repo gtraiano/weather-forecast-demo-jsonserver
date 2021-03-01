@@ -8,8 +8,42 @@
  -->
 
 <template>
+    <!-- OpenWeather API key not set -->
+    <div
+        v-if="!apiKeySet"
+        id="app"
+        tabindex="0"
+        class="container-fluid"
+    >
+        <h1>{{$t('api key not set')}}</h1>
+        <h6 style="margin-top: 20vh">{{$t('set api key')}}</h6>
+        <b-form
+            @submit="setOWApiKey($event.srcElement[0]._value)"
+            @reset="$event.srcElement[0]._value = null"
+        >
+            <b-form-group
+                id="input-group-1"
+                label-for="input-1"
+                style="width: 50%; margin-left: auto; margin-right: auto;"
+              >
+                  <b-form-input
+                    id="input-1"
+                    type="text"
+                    placeholder="Enter API key"
+                    required
+                    trim
+                  />
+              </b-form-group>
+
+              <b-button type="submit" variant="primary">Submit</b-button>
+              <b-button type="reset" variant="danger">Reset</b-button>
+        </b-form>
+        <h5 v-html="$t('set api key warn')" style="margin-top: 2vh"></h5>
+    </div>
+    
+    <!-- backend is available -->
     <div 
-        v-if="backendStatus"
+        v-else-if="apiKeySet && backendStatus"
         id="app"
         tabindex="0"
         @keydown.esc="$store.dispatch('search/clear')"
@@ -157,7 +191,7 @@
 import TopHeader from './components/TopHeader.vue';
 import { BOverlay, BButton, BModal, BIconLightning, BIconSearch } from 'bootstrap-vue'
 import SearchResults from './components/SearchResults.vue';
-import { pingActiveProtocol, setBackendUrl } from './controllers/backend.js';
+import { pingActiveProtocol, setBackendUrl, getOWApiKey, setOWApiKey } from './controllers/backend.js';
 import { mapGetters } from 'vuex'
 
 export default {
@@ -180,7 +214,8 @@ export default {
           showAvailable: false,         // show available backend options when backend is unavailable
           upToDate: null,               // forecast data is up to date (or needs to be refetched from openweather)
           upToDateHandle: null,         // check forecast data up to date setInterval handle
-          upToDateLastChecked: null     // forecast data up to date last checked
+          upToDateLastChecked: null,     // forecast data up to date last checked
+          apiKeySet: null
       }
   },
 
@@ -216,6 +251,9 @@ export default {
               await this.$store.dispatch('preferences/initializeAvailableProtocols');
               await this.checkBackendStatus();
               if(this.backendStatus) {
+                  //console.log('OW_API_KEY', await this.getOWApiKey());
+                  this.apiKeySet = await getOWApiKey() != '';
+                  console.log(`OpenWeather API key is ${this.apiKeySet ? '' : 'not'} set`)
                   console.log('Loading forecast data');
                   if(this.autoRefetch) {
                       // check if forecast data is needs to be refreshed
@@ -243,6 +281,16 @@ export default {
           this.$store.dispatch('search/setSearchTerm', document.getElementById('search-input').value);
           await this.$store.dispatch('search/setShowResults', true);
           await this.$store.dispatch('search/searchCity');
+      },
+
+      async setOWApiKey(key) {
+          try {
+              this.apiKeySet = await setOWApiKey(key) != '';
+              console.log('API key set to', await getOWApiKey());
+            }
+            catch(error) {
+                console.error(error.message);
+            }
       }
   },
 

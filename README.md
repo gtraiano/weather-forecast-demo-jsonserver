@@ -88,4 +88,5 @@ Copyright - Spiros Dimopoulos <sdimopoulos@irisweb.gr>
 Modification and additions - Georgios Traianos <gtraiano@gmail.com>
 
 It is provided as is without any guarantee for demonstration purposes solely.
+
 Not to be redistributed in any form, copied or sold.

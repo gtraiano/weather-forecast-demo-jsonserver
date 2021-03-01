@@ -3,7 +3,7 @@ const axios = require('axios');
 
 const cities = require('./supportedcities.json');
 const baseUrl = 'https://api.openweathermap.org/data/2.5/onecall';
-const apiKey = process.env.OW_API_KEY;
+let apiKey = process.env.OW_API_KEY;
 
 
 // params = (lat, lon)
@@ -77,4 +77,12 @@ const fetchAllCities = async (cityList = cities) => {
 	}
 }
 
-module.exports = { fetchAllCities, fetchCity }
+const setOWApiKey = key => {
+	apiKey = key;
+}
+
+const getOWApiKey = () => {
+	return apiKey;
+}
+
+module.exports = { fetchAllCities, fetchCity, getOWApiKey, setOWApiKey }

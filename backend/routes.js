@@ -1,4 +1,5 @@
 /*
+
 PATH						METHOD			PARAMETERS 						HEADERS 										ACTION
 
 /coords 					GET 																							get all cities in database
@@ -18,6 +19,11 @@ PATH						METHOD			PARAMETERS 						HEADERS 										ACTION
 
 /nominatim/:name 			GET 											Locale = search results locale					Nominatim search
 /nominatim/:lat:/lon 		GET 			lat=latitude lon=longitude 		Locale = search result locale					Nominatim reverse search
+
+/ping						GET																								returns 'pong' (check if backend is running)
+/apikey						GET																								returns OpenWeather API key
+/apikey						POST			query: ?key='key'																sets OpenWeather API key to 'key'
+
 */
 
 const { searchCity } = require('./services/NominatimSearch');
@@ -269,5 +275,19 @@ router.get('/nominatim/:lat/:lon', async (req, res, next) => {
 router.get('/ping', (req, res) => {
 	res.send('pong');
 });
+
+router.get('/apikey', (req, res) => {
+	res.send(owService.getOWApiKey());
+});
+
+router.post('/apikey', (req, res) => {
+	if(req.query.key) {
+		owService.setOWApiKey(req.query.key);
+		res.status(200).send(owService.getOWApiKey()); // respond with newly set key
+	}
+	else {
+		res.status(400).end();
+	}
+})
 
 module.exports = router;

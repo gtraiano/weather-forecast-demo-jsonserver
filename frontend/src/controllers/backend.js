@@ -72,6 +72,26 @@ const setBackendUrl = url => {
 	baseUrl = url;
 }
 
+const getOWApiKey = async () => {
+	try {
+		const response = await axios.get(`${baseUrl}apikey`);
+		return response.data;
+	}
+	catch(error) {
+		throw new Error('API key could not be retrieved.', error.message);
+	}
+}
+
+const setOWApiKey = async key => {
+	try {
+		const response = await axios.post(`${baseUrl}apikey?key=${key}`);
+		return response.data;
+	}
+	catch(error) {
+		throw new Error('API key could not be set.', error.message);
+	}
+}
+
 // Nominatim calls
 const nominatimSearchName = async (name, locale) => {
 	try {
@@ -207,5 +227,7 @@ export {
 	setActiveProtocol,
 	getActiveProtocol,
 	getActivePort,
-	setBackendUrl
+	setBackendUrl,
+	getOWApiKey,
+	setOWApiKey
 };
